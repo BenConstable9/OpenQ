@@ -1,0 +1,20 @@
+/* MAIN CSS FOR APP */
+/* Copyright Ben Constable 2017 */
+body {
+    height: 100%;
+}
+#cue_list {
+    width: 100%;
+    background: grey;
+    color: white;
+}
+/* Individual Cue */
+.cue {
+    cursor: grabbing;
+}
+#taskbar {
+    bottom: 0px;
+}
+#go {
+    font-weight: bold;
+}
