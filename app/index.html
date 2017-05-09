@@ -14,29 +14,83 @@
     
 </head>
 <body>
-    <!-- Cue List -->
-    <table id="cue_list">
-        <!-- Titles -->
-        <tr class="title">
-            <td>
-                <h4>#</h4>
-            </td>
-            <td>
-                <h4>Title</h4>
-            </td>
-            <td>
-                <h4>Status</h4>
-            </td>
-        </tr>
-        <tr class="cue" id="1"><td>1</td><td>Test</td><td>Playing</td></tr>
-        <tr class="cue" id="2"><td>2</td><td>hello</td><td>paused</td></tr>
-        <tr class="cue" id="3"><td>3</td><td>gjhdfgh</td><td>ksdhgsjdh</td></tr>
-    </table>
-    <!-- Control Taskbar -->
-    <div id="taskbar">
-        <button id="go" class="btn btn-lg btn-default">FIRE</button>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <i id="loader_spinner" class="fa fa-spinner fa-pulse fa-3x fa-fw"></i><br><br>
+        <p id="loading_text">Loading</p>
     </div>
     
+    <!-- Loading Screen -->
+    <div id="start_screen">
+        <div class="row">
+            <div class="col-md-4 col-md-offset-2 start_click">
+                <i class="fa fa-plus start_icon" aria-hidden="true"></i>
+                <p>New Show</p>
+            </div>
+            <div class="col-md-4 start_click">
+                <i class="fa fa-folder-open-o start_icon" aria-hidden="true"></i>
+                <p>Load Show</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Header -->
+    <div id="header">
+        <div id="info"><span id="Q">Q</span> - <span id="show_title">Unsaved Show</span></div>
+    </div>
+    
+    <!-- Cue List -->
+    <div id="cue_list_div">
+        <table id="cue_list">
+            <!-- Titles -->
+            <tr class="cue_list_title">
+                <td>
+                    <h4>#</h4>
+                </td>
+                <td>
+                    <h4>Title</h4>
+                </td>
+                <td>
+                    <h4>Length</h4>
+                </td>
+                <td>
+                    <h4>Status</h4>
+                </td>
+            </tr>
+        </table>
+    </div>
+    
+    <!-- Control Taskbar -->
+    <div id="taskbar">
+        <div class="row fullheight">
+            <div class="col-md-9">
+                test
+            </div>
+            <div class="col-md-1">
+                <table class="button_grid">
+                    <tr>
+                        <td class="button-grid_td">
+                            <button id="play" class="btn btn-default grid_button" disabled><i class="fa fa-play" aria-hidden="true"></i></button>
+                        </td>
+                        <td class="button-grid_td">
+                            <button id="pause" class="btn btn-default grid_button" disabled><i class="fa fa-pause" aria-hidden="true"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="button-grid_td">
+                            <button id="stop" class="btn btn-default grid_button" disabled><i class="fa fa-stop" aria-hidden="true"></i></button>
+                        </td>
+                        <td class="button-grid_td">
+                            <button class="btn btn-default grid_button" disabled><i class="fa fa-step-backward" aria-hidden="true"></i></button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-2 fullheight">
+                <button id="go" class="btn btn-lg btn-success pull-right" disabled>FIRE CUE  <i class="fa fa-rocket" aria-hidden="true"></i></button>
+            </div>
+        </div>
+    </div>
     
     <!-- Scripts -->
     <script src="../node_modules/howler/src/howler.core.js"></script>
