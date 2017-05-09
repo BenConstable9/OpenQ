@@ -10,8 +10,8 @@ const url = require('url')
 
 app.on('ready', function(){
     mainWindow = new BrowserWindow({
-        width: 612,
-        height: 384
+        width: 1280,
+        height: 720
     });
     mainWindow.webContents.openDevTools();
     mainWindow.loadURL(url.format({
