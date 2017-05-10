@@ -107,6 +107,11 @@ html, body {
     font-weight: bold;
     height: 100%;
 }
+#fade {
+    font-weight: bold;
+    height: 100%;
+    display: none;
+}
 .button-grid {
     width: 100%;
     vertical-align: middle;
