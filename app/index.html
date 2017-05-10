@@ -36,12 +36,25 @@
     
     <!-- Header -->
     <div id="header">
-        <div id="info"><span id="Q">Q</span> - <span id="show_title">Unsaved Show</span></div>
+        <div class="row">
+            <div class="col-md-2">
+                <button class="btn btn-sm btn-info">Import</button>
+            </div>
+            <div class="col-md-4">
+                <div id="info">Q</div>
+            </div>
+            <div class="col-md-2">
+                <div class="btn-group" role="group">
+                  <button class="btn btn-sm btn-default"><i class="fa fa-wrench" aria-hidden="true"></i></button>
+                  <button class="btn btn-sm btn-default"><i class="fa fa-lock" aria-hidden="true"></i></button>
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Cue List -->
     <div id="cue_list_div">
-        <table id="cue_list">
+        <table id="cue_list" class="table table-striped table-hover table-condensed">
             <!-- Titles -->
             <tr class="cue_list_title">
                 <td>
@@ -87,7 +100,7 @@
                 </table>
             </div>
             <div class="col-md-2 fullheight">
-                <button id="go" class="btn btn-lg btn-success pull-right" disabled>FIRE CUE  <i class="fa fa-rocket" aria-hidden="true"></i></button>
+                <button id="go" class="btn btn-lg btn-success pull-right" disabled>FIRE CUE</button>
             </div>
         </div>
     </div>

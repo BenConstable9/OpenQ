@@ -53,12 +53,14 @@ function select_cue(row_id) {
         //selected_cue.style.color = "white";
         //selected_cue.style.background = "grey";
         selected_cue.classList.remove("cue_selected");
+        selected_cue.classList.remove("info");
     }
     selected_cue = document.getElementById(row_id);
     //todo improve styling of rows
     //selected_cue.style.color = "blue";
     //selected_cue.style.background = "white";
     selected_cue.classList.add("cue_selected");
+    selected_cue.classList.add("info");
     selected_howler = howl_objects[row_id];
     selected_howler = selected_howler[0];
     //disable button if sound is already playing
@@ -68,6 +70,8 @@ function select_cue(row_id) {
     }
     else if (selected_howler.playing() == true) {
         fire.disabled = true;
+        document.getElementById("stop").disabled = false;
+        document.getElementById("pause").disabled = false;
     }
     //todo add row details to taskbar
 }
@@ -75,6 +79,9 @@ function select_cue(row_id) {
 function fire_cue() {
     //check if undefined
     selected_howler.play();
+    selected_cue.classList.add("success");
+    selected_cue.classList.remove("info");
+    selected_cue.classList.remove("danger");
     document.getElementById("go").disabled = true;
     document.getElementById("stop").disabled = false;
     document.getElementById("pause").disabled = false;
@@ -84,6 +91,7 @@ function fire_cue() {
 function stop_cue() {
     //check if undefined
     selected_howler.stop();
+    selected_cue.classList.remove("success");
     document.getElementById("go").disabled = false;
     document.getElementById("stop").disabled = true;
     document.getElementById("pause").disabled = true;
@@ -92,6 +100,8 @@ function stop_cue() {
 function pause_cue() {
     //check if undefined
     selected_howler.pause();
+    selected_cue.classList.remove("success");
+    selected_cue.classList.add("danger");
     document.getElementById("go").disabled = true;
     document.getElementById("pause").disabled = true;
     document.getElementById("play").disabled = false;
@@ -115,5 +125,19 @@ document.getElementById("pause").addEventListener("click", pause_cue);
 document.getElementById("stop").addEventListener("click", stop_cue);
 document.getElementById("play").addEventListener("click", fire_cue);
 
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - You Give Love A Bad Name.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - Livin' On A Prayer.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - You Give Love A Bad Name.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - Livin' On A Prayer.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - You Give Love A Bad Name.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - Livin' On A Prayer.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - You Give Love A Bad Name.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - Livin' On A Prayer.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - You Give Love A Bad Name.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - Livin' On A Prayer.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - You Give Love A Bad Name.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - Livin' On A Prayer.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - You Give Love A Bad Name.mp3");
+add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - Livin' On A Prayer.mp3");
 add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - You Give Love A Bad Name.mp3");
 add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - Livin' On A Prayer.mp3");
