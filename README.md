@@ -4,7 +4,7 @@ Music Cuing Software written with the Electron Framework. Still in development. 
 ## Known Issues
 None
 
-## To do
+## Future Developments
 
 - [ ] Implement file importer to import music. Currently this is achieved manually.
 - [ ] Find way to retrieve music file details
