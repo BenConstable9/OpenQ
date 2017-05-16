@@ -6,8 +6,8 @@ None
 
 ## To do
 
-[ ] Implement file importer to import music. Currently this is achieved manually.
-[ ] Find way to retrieve music file details
-[ ] Implement show savings method as well as importing method
-[ ] Add more features to the taskbar once music is selected
-[ ] Package as an installable app once all above points are met
+- [ ] Implement file importer to import music. Currently this is achieved manually.
+- [ ] Find way to retrieve music file details
+- [ ] Implement show savings method as well as importing method
+- [ ] Add more features to the taskbar once music is selected
+- [ ] Package as an installable app once all above points are met
