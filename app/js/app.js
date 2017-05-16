@@ -24,6 +24,8 @@ function add_music_cue(src) {
         if (selected_cue.id == cue_id) {
             document.getElementById(num_cues).classList.add("info");
             document.getElementById("go").disabled = false;
+            document.getElementById("go").style.display = "block";
+            document.getElementById("fade").style.display = "none";
             document.getElementById("stop").disabled = true;
             document.getElementById("pause").disabled = true;
             document.getElementById("play").disabled = true;
@@ -113,6 +115,7 @@ function stop_cue() {
     //check if undefined
     selected_howler.stop();
     selected_cue.classList.remove("success");
+    selected_cue.classList.add("info");
     document.getElementById("go").disabled = false;
     document.getElementById("go").style.display = "block";
     document.getElementById("fade").style.display = "none";
@@ -142,15 +145,14 @@ function fade_cue() {
     document.getElementById("play").disabled = true; 
     selected_howler.fade(cue_volume, 0, 10000);
     setTimeout(function() {
+        selected_howler.volume(cue_volume);
         selected_howler.stop();
         selected_cue.classList.remove("warning");
         document.getElementById("go").disabled = false;
         document.getElementById("go").style.display = "block";
         document.getElementById("fade").style.display = "none";
         document.getElementById("fade").disabled = false;
-        document.getElementById("stop").disabled = false;
-        document.getElementById("pause").disabled = false;
-        document.getElementById("play").disabled = false; 
+        selected_cue.classList.add("info");
     }, 10000);
 }
 
@@ -173,5 +175,9 @@ document.getElementById("pause").addEventListener("click", pause_cue);
 document.getElementById("stop").addEventListener("click", stop_cue);
 document.getElementById("play").addEventListener("click", fire_cue);
 
+//manual adding
 add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - You Give Love A Bad Name.mp3");
 add_music_cue("C:/Users/Ben/Downloads/Bon Jovi - Livin' On A Prayer.mp3");
+add_music_cue("C:/Users/Ben/Downloads/The Wombats - 1996.mp3");
+add_music_cue("C:/Users/Ben/Downloads/The Wombats - Jump Into The Fog.mp3");
+add_music_cue("C:/Users/Ben/Downloads/The Wombats - Techno Fan.mp3");
