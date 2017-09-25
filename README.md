@@ -1,12 +1,18 @@
 # Q
-Music Cuing Software written with the Electron Framework. Still in development. Not recommended to be used in live situations yet; software has not been tested for stability when cueing large amounts of music.
+Music Cuing Software written with the Electron Framework. Still in development - Not recommended to be used in live situations yet.
+
+## Latest Updates
+
+- Major Styling Changes
+- Import Song Button
 
 ## Known Issues
-None
+
+- [ ] When importing music through button, length is not detected.
 
 ## Future Developments
 
-- [ ] Implement file importer to import music. Currently this is achieved manually.
+- [x] Implement file importer to import music. Currently this is achieved manually.
 - [ ] Find way to retrieve music file details
 - [ ] Implement show savings method as well as importing method
 - [ ] Add more features to the taskbar once music is selected
