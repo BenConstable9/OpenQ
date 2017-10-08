@@ -19,6 +19,10 @@ a {
     background: transparent;
 }
 
+#alert {
+    margin: 0px;
+}
+
 /* Loading Screen Styles */
 #loading {
     position: absolute;
@@ -96,9 +100,12 @@ a {
 }
 
 /* Task Bar */
+#taskbar {
+    bottom: 0px;
+    position: fixed;
+}
 .taskbar {
     width: 100%;
-    bottom: 0px;
     background-color: #fff;
     margin-bottom: 0px;
 }
