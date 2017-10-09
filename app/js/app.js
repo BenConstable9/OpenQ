@@ -20,7 +20,7 @@ function show_alert(message) {
     $("#alertMessage").append("<br>" + message);
 }
 
-function add_music_cue(src) {
+function add_music_cue(src, volume, rate) {
     src = src.replace(/\\/g, "/");
     var title = src;
     //add a random string to prevent howler.js confusion
@@ -42,9 +42,10 @@ function add_music_cue(src) {
             howl_objects[num_cues] = [];
         }
         howl_objects[num_cues].push(sound);
+        howl_objects[num_cues][0].rate(rate);
+        howl_objects[num_cues][0].volume(volume);
         console.log(howl_objects);
         howl_objects[num_cues][0].on('end', function(){
-            console.log(cue_id);
             document.getElementById(cue_id).classList.remove("success");
             if (selected_id == cue_id) {
                 document.getElementById(num_cues).classList.add("info");
@@ -88,7 +89,8 @@ function add_music_cue(src) {
             var status = "Loading...";
             var duration = "Calculating...";
             var controls = "Controls";
-            var elements = [cue_id, title, duration, status, controls];
+            var position = "00:00";
+            var elements = [cue_id, title, duration, position, volume, rate, status, controls];
             for (var y = 0; y < elements.length; ++y) {
                 //add cell and create text
                 var cell = cue.insertCell(y);
@@ -103,6 +105,15 @@ function add_music_cue(src) {
                     name = "duration";
                 }
                 else if (y == 3) {
+                    name = "position";
+                }
+                else if (y == 4) {
+                    name = "volume";
+                }
+                else if (y == 5) {
+                    name = "rate";
+                }
+                else if (y == 6) {
                     name = "status";
                 }
                 var cell_id = cue_id + "_" + name;
@@ -269,7 +280,7 @@ $("#show_import_button").click(function(){
 // file selected
 $("#cue_import_file").change(function(){
     var cue = $('#cue_import_file')[0].files[0];
-    add_music_cue(cue.path);
+    add_music_cue(cue.path, "1", "1");
 });
 
 // file selected
@@ -284,20 +295,15 @@ $("#show_import_file").change(function(){
                 show_alert("Invalid File");
             }
             $("#show").html(json.name);
+            document.title = "Q - " + json.name;
             //delay to keep the order
             var x = 300;
             $.each(json.cues, function(i, cue) {
                 setTimeout(function() {
-                    add_music_cue(cue.src);
+                    add_music_cue(cue.src, cue.volume, cue.rate);
                 }, x);
                 x += 300;
             });
         }
     });
 });
-
-//manual adding
-
-//add_music_cue("C:/Users/Ben/OneDrive/Downloads/The Killers - Spaceman.mp3");
-//add_music_cue("C:/Users/Ben/OneDrive/Downloads/The Killers - Be Still.mp3");
-//add_music_cue("C:/Users/Ben/OneDrive/Downloads/The Wombats - Jump Into The Fog.mp3");

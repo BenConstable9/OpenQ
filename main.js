@@ -9,6 +9,8 @@ var mainWindow = null;
 const path = require('path');
 const url = require('url');
 
+const autoUpdater = require("electron-updater").autoUpdater;
+
 app.on('ready', function(){
     mainWindow = new BrowserWindow({
         width: 1280,

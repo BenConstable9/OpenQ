@@ -14,12 +14,14 @@
     "bugs": {
         "url": "https://github.com/benconstable9/q/issues"
     },
-    "dependencies" : { 
+    "dependencies": {
+        "electron": "1.4.15",
+        "electron-updater": "^2.10.2",
+        "howler": "2.0.5",
         "jquery": "3.2.1",
-        "electron" : "1.4.15",
-        "howler" : "2.0.5"
+        "electron-updater": "1.1.0"
     },
     "author": "Ben Constable",
     "license": "MIT",
-    "copyright" = "Copyright © 2017 Ben Constable"
+    "copyright": "Copyright © 2017 Ben Constable"
 }
