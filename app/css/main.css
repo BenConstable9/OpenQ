@@ -13,52 +13,15 @@ a {
     cursor: pointer;
 }
 
-
-/* */
+/* Background */
 ::selection { 
     background: transparent;
 }
 
+/* Alerts */
 #alert {
     margin: 0px;
     border-radius: 0px;
-}
-
-/* Loading Screen Styles */
-#loading {
-    position: absolute;
-    z-index: 100;
-    height: 100%;
-    width: 100%;
-    background-color: #8A1BA4;
-    text-align: center;
-    padding-top: 20%;
-    display: none;
-    cursor: wait;
-}
-#loader_spinner {
-    font-size: 100px;
-}
-#loading_text {
-    font-size: 20px;
-}
-
-/* Start Screen */
-#start_screen {
-    position: absolute;
-    z-index: 50;
-    height: 100%;
-    width: 100%;
-    background-color: #8A1BA4;
-    text-align: center;
-    padding-top: 20%;
-    display: none;
-}
-.start_click {
-    cursor: pointer;
-}
-.start_icon {
-    font-size: 150px;
 }
 
 /* Header */
@@ -89,6 +52,7 @@ a {
 }
 #cue_list {
     width: 100%;
+    margin-bottom: 0px;
 }
 
 /* Individual Cue */
@@ -116,6 +80,8 @@ a {
 }
 #controls {
     padding-top: 10px;
+    padding-right: 35px;
+    padding-left: 35px;
 }
 #go {
     font-weight: bold;
@@ -126,14 +92,51 @@ a {
     height: 100%;
     display: none;
 }
-.button-grid {
-    width: 100%;
-    vertical-align: middle;
-    min-height: 100%;
+#seek-slider {
+    margin-top: 10px;
+    height: 1em;
+    border-radius: 0.5em;
 }
-.button-grid_td {
-    padding: 5px;
+#seek-slider-handle {
+    width: 3em;
+    height: 1.6em;
+    top: 50%;
+    margin-top: -.8em;
+    text-align: center;
+    line-height: 1.6em;
+    background-color: rgb(0, 127, 255);
+    color: white;
+    border-radius: 3em;
 }
-.grid_button {
-    width: 100%;
+#volume-slider {
+    margin-top: 10px;
+    height: 1em;
+    border-radius: 0.5em;
+}
+#volume-slider-handle {
+    width: 3em;
+    height: 1.6em;
+    top: 50%;
+    margin-top: -.8em;
+    text-align: center;
+    line-height: 1.6em;
+    background-color: rgb(0, 127, 255);
+    color: white;
+    border-radius: 3em;
+}
+#rate-slider {
+    margin-top: 10px;
+    height: 1em;
+    border-radius: 0.5em;
+}
+#rate-slider-handle {
+    width: 3em;
+    height: 1.6em;
+    top: 50%;
+    margin-top: -.8em;
+    text-align: center;
+    line-height: 1.6em;
+    background-color: rgb(0, 127, 255);
+    color: white;
+    border-radius: 3em;
 }

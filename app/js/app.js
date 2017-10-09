@@ -1,16 +1,41 @@
 //MAIN JS FOR APP
 //Copyright Ben Constable 2017
 
-var num_cues = 0;
-
 // ** VARIABLES **
+var num_cues = 0;
 var selected_id;
 var selected_cue;
+var cue_volume;
 var howl_objects = [];
-var selected_howler;
+var selected_howler = "";
 
 // ** FUNCTIONS **
 
+//Update Slider Times
+setInterval(function() {
+    if (selected_howler != "") {
+        var time = selected_howler.seek();
+        $('#seek-slider').slider('value', time);
+        var minutes = Math.floor(time / 60);
+        var seconds = (time - minutes * 60).toFixed(0);
+        seek_sec = minutes + ":" + seconds;
+        $( "#seek-slider-handle" ).text(seek_sec);
+    }
+    for (var i = 1; i <= num_cues; i++) {
+        var time = howl_objects[i][0].seek();
+        var cell_id = i + "_";
+        var position_id = cell_id + "position";
+        var minutes = Math.floor(time / 60);
+        var seconds = (time - minutes * 60).toFixed(0);
+        seek_sec = minutes + ":" + seconds;
+        if (minutes == "NaN") {
+            seek_sec = "00:00";
+        }
+        document.getElementById(position_id).innerHTML = seek_sec; 
+    }
+}, 100);
+
+//Show The Alert
 function show_alert(message) {
     if ($('#alert').length == 0) {
         var alertHtml = "<div id='alert' class='alert alert-danger alert-dismissible' role='alert' style='display:none'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Warning - Critical Error!</strong> <span id='alertMessage'></span></div>"
@@ -20,7 +45,8 @@ function show_alert(message) {
     $("#alertMessage").append("<br>" + message);
 }
 
-function add_music_cue(src, volume, rate) {
+//Add New Cue
+function add_cue(src, volume, rate) {
     src = src.replace(/\\/g, "/");
     var title = src;
     //add a random string to prevent howler.js confusion
@@ -44,7 +70,6 @@ function add_music_cue(src, volume, rate) {
         howl_objects[num_cues].push(sound);
         howl_objects[num_cues][0].rate(rate);
         howl_objects[num_cues][0].volume(volume);
-        console.log(howl_objects);
         howl_objects[num_cues][0].on('end', function(){
             document.getElementById(cue_id).classList.remove("success");
             if (selected_id == cue_id) {
@@ -70,9 +95,9 @@ function add_music_cue(src, volume, rate) {
         howl_objects[num_cues][0].on('load', function(){
             //add the time
             var duration = sound.duration();
-            console.log(duration);
-            duration = (duration / 60).toFixed(2);
-            duration = duration.replace(".", ":");
+            var minutes = Math.floor(duration / 60);
+            var seconds = (duration - minutes * 60).toFixed(0);
+            duration = minutes + ":" + seconds;
             var cell_id = cue_id + "_";
             var duration_id = cell_id + "duration";
             var status_id = cell_id + "status";
@@ -120,7 +145,6 @@ function add_music_cue(src, volume, rate) {
                 cell.setAttribute("id", cell_id);
                 cell.innerHTML = elements[y];
             }
-            //todo add the event listeners
             document.getElementById(cue_id).addEventListener("click", function() {
                 select_cue(cue_id);
             });
@@ -132,6 +156,7 @@ function add_music_cue(src, volume, rate) {
     });
 }
 
+//Select a Cue
 function select_cue(row_id) {
     selected_id = row_id;
     //pass in id of row to select it
@@ -145,6 +170,37 @@ function select_cue(row_id) {
     selected_howler = howl_objects[row_id];
     selected_howler = selected_howler[0];
     cue_volume = selected_howler.volume();
+    var cue_rate = selected_howler.rate();
+    $('#volume-slider').slider('value', cue_volume);
+    $( "#volume-slider-handle" ).text(cue_volume);
+    $('#rate-slider').slider('value', cue_rate);
+    $( "#rate-slider-handle" ).text(cue_rate);
+    //set up the seek slider 
+    $( "#seek-slider" ).slider( "destroy" );
+    document.getElementById("seek-slider").innerHTML = '<div id="seek-slider-handle" class="ui-slider-handle"></div>';
+    var seek = selected_howler.seek();
+    var minutes = Math.floor(seek / 60);
+    var seconds = (seek - minutes * 60).toFixed(0);
+    seek_sec = minutes + ":" + seconds;
+    $( "#seek-slider" ).slider({
+        min: 0,
+        max: selected_howler.duration(),
+        step: 1,
+        value: seek,
+        create: function() {
+            $( "#seek-slider-handle" ).text(seek_sec);
+        },
+        slide: function( event, ui ) {
+            setTimeout(function() {
+                var seek = $( "#seek-slider" ).slider("option", "value");
+                selected_howler.seek(seek);
+                var minutes = Math.floor(seek / 60);
+                var seconds = (seek - minutes * 60).toFixed(0);
+                seek_sec = minutes + ":" + seconds;
+                $( "#seek-slider-handle" ).text(seek_sec);
+            }, 30);    
+        }
+    });
     //disable button if sound is already playing
     var fire = document.getElementById("go");
     var fade = document.getElementById("fade");
@@ -152,11 +208,13 @@ function select_cue(row_id) {
         fire.disabled = false;
         fire.style.display = "block";
         fade.style.display = "none";
+        fade.disabled = true;
     }
     else if (selected_howler.playing() == true) {
         fire.disabled = true;
         fire.style.display = "none";
         fade.style.display = "block";
+        fade.disabled = false;
         document.getElementById("stop").disabled = false;
         document.getElementById("pause").disabled = false;
     }
@@ -166,6 +224,7 @@ function select_cue(row_id) {
     document.getElementById("cue_name").value = document.getElementById(status_id).innerHTML;
 }
 
+//Play It
 function fire_cue() {
     var cue_id = selected_id;
     var cue = howl_objects[cue_id][0];
@@ -176,6 +235,7 @@ function fire_cue() {
     document.getElementById("go").disabled = true;
     document.getElementById("go").style.display = "none";
     document.getElementById("fade").style.display = "block";
+    document.getElementById("fade").disabled = false;
     document.getElementById("stop").disabled = false;
     document.getElementById("pause").disabled = false;
     document.getElementById("play").disabled = true;
@@ -184,6 +244,7 @@ function fire_cue() {
     document.getElementById(status_id).innerHTML = "Playing"; 
 }
 
+//Stop it
 function stop_cue() {
     var cue_id = selected_id;
     var cue = howl_objects[cue_id][0];
@@ -202,6 +263,7 @@ function stop_cue() {
     document.getElementById(status_id).innerHTML = "Ready"; 
 }
 
+//Pause It
 function pause_cue() {
     var cue_id = selected_id;
     var cue = howl_objects[cue_id][0];
@@ -218,6 +280,7 @@ function pause_cue() {
     document.getElementById(status_id).innerHTML = "Paused"; 
 }
 
+//Fade It
 function fade_cue() {
     var cue_id = selected_id;
     var cue = howl_objects[cue_id][0];
@@ -228,7 +291,7 @@ function fade_cue() {
     document.getElementById("stop").disabled = true;
     document.getElementById("pause").disabled = true;
     document.getElementById("play").disabled = true; 
-    cue.fade(cue_volume, 0, 10000);
+    cue.fade(cue_volume, 0, 5000);
     var cell_id = cue_id + "_";
     var status_id = cell_id + "status";
     document.getElementById(status_id).innerHTML = "Fading"; 
@@ -246,7 +309,7 @@ function fade_cue() {
         var cell_id = cue_id + "_";
         var status_id = cell_id + "status";
         document.getElementById(status_id).innerHTML = "Ready"; 
-    }, 10000);
+    }, 5000);
 }
 
 // ** EVENT LISTENERS **
@@ -260,6 +323,61 @@ if (cues.length > 0) {
         });
     }
 }
+
+//Set Up seek slider - placeholder
+var handle = $( "#seek-slider-handle" );
+$( "#seek-slider" ).slider({
+    min: 0,
+    max: 0,
+    step: 1,
+    create: function() {
+        handle.text("00:00");
+    }
+});
+
+//set up volume slider
+$( "#volume-slider" ).slider({
+    min: 0,
+    max: 1,
+    step: 0.1,
+    value: 1,
+    create: function() {
+        $( "#volume-slider-handle" ).text("1");
+    },
+    slide: function( event, ui ) {
+        var cue_id = selected_id;
+        var cell_id = cue_id + "_";
+        var volume_id = cell_id + "volume";
+        setTimeout(function() {
+            var new_volume = $( "#volume-slider" ).slider("option", "value");
+            $( "#volume-slider-handle" ).text(new_volume);
+            selected_howler.volume(new_volume);
+            document.getElementById(volume_id).innerHTML = new_volume; 
+        }, 30);
+    }
+});
+
+//set up rate slider
+$( "#rate-slider" ).slider({
+    min: 0.5,
+    max: 4.0,
+    step: 0.1,
+    value: 1,
+    create: function() {
+        $( "#rate-slider-handle" ).text("1");
+    },
+    slide: function( event, ui ) {
+        var cue_id = selected_id;
+        var cell_id = cue_id + "_";
+        var rate_id = cell_id + "rate";
+        setTimeout(function() {
+            var new_rate = $( "#rate-slider" ).slider("option", "value");
+            $( "#rate-slider-handle" ).text(new_rate);
+            selected_howler.rate(new_rate);
+            document.getElementById(rate_id).innerHTML = new_rate;
+        }, 30);
+    }
+});
 
 //Button Event Listeners
 document.getElementById("go").addEventListener("click", fire_cue);
@@ -280,14 +398,22 @@ $("#show_import_button").click(function(){
 // file selected
 $("#cue_import_file").change(function(){
     var cue = $('#cue_import_file')[0].files[0];
-    add_music_cue(cue.path, "1", "1");
+    $('#cue_import_file').val("");
+    add_cue(cue.path, "1", "1");
 });
 
 // file selected
 $("#show_import_file").change(function(){
     var show = $('#show_import_file')[0].files[0];
+    $('#show_import_file').val("");
+    howl_objects = [];
+    num_cues = 0;
+    document.getElementById("cue_list_body").innerHTML = "";
+    //add a random string to prevent howler.js confusion
+    var random = Math.random();
+    show = show.path + "?" + random;
     $.ajax({
-        url: "C:/Users/Ben/OneDrive/Documents/test.json",
+        url: show,
         dataType: "json",
         success: function (json) {
             // Process data here
@@ -300,7 +426,7 @@ $("#show_import_file").change(function(){
             var x = 300;
             $.each(json.cues, function(i, cue) {
                 setTimeout(function() {
-                    add_music_cue(cue.src, cue.volume, cue.rate);
+                    add_cue(cue.src, cue.volume, cue.rate);
                 }, x);
                 x += 300;
             });

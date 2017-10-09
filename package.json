@@ -19,7 +19,8 @@
         "electron-updater": "^2.10.2",
         "howler": "2.0.5",
         "jquery": "3.2.1",
-        "electron-updater": "1.1.0"
+        "electron-updater": "1.1.0",
+        "jquery-ui": "1.12.1"
     },
     "author": "Ben Constable",
     "license": "MIT",
