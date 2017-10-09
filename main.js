@@ -1,19 +1,23 @@
 //Q
+//Main.js - Copyright Ben Constable 2017
 
 const electron = require('electron');
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 var mainWindow = null;
 
-const path = require('path')
-const url = require('url')
+
+const Store = require('electron-store');
+const store = new Store();
+
+const path = require('path');
+const url = require('url');
 
 app.on('ready', function(){
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 720
     });
-    mainWindow.webContents.openDevTools();
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'app/index.html'),
         protocol: 'file:',

@@ -21,6 +21,7 @@ a {
 
 #alert {
     margin: 0px;
+    border-radius: 0px;
 }
 
 /* Loading Screen Styles */
@@ -102,6 +103,7 @@ a {
 /* Task Bar */
 #taskbar {
     bottom: 0px;
+    border-radius: 0px;
     position: fixed;
 }
 .taskbar {

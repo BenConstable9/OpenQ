@@ -13,7 +13,7 @@ var selected_howler;
 
 function show_alert(message) {
     if ($('#alert').length == 0) {
-        var alertHtml = "<div id='alert' class='alert alert-danger alert-dismissible alert-fixed' role='alert' style='display:none'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Warning - Critical Error!</strong> <span id='alertMessage'></span></div>"
+        var alertHtml = "<div id='alert' class='alert alert-danger alert-dismissible' role='alert' style='display:none'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Warning - Critical Error!</strong> <span id='alertMessage'></span></div>"
         $("#alertdiv").html(alertHtml);
         $("#alert").show();
     }
@@ -22,7 +22,10 @@ function show_alert(message) {
 
 function add_music_cue(src) {
     src = src.replace(/\\/g, "/");
-    console.log(src);
+    var title = src;
+    //add a random string to prevent howler.js confusion
+    var random = Math.random();
+    src = src + "?" + random;
     var request = $.get(src);
     request.done(function(result) {
         //create the howl
@@ -35,9 +38,15 @@ function add_music_cue(src) {
         //make sure to add them with the class cue
         num_cues += 1;
         var cue_id = num_cues;
-        sound.on('end', function(){
-            document.getElementById(num_cues).classList.remove("success");
-            if (selected_cue.id == cue_id) {
+        if (!howl_objects[num_cues]) {
+            howl_objects[num_cues] = [];
+        }
+        howl_objects[num_cues].push(sound);
+        console.log(howl_objects);
+        howl_objects[num_cues][0].on('end', function(){
+            console.log(cue_id);
+            document.getElementById(cue_id).classList.remove("success");
+            if (selected_id == cue_id) {
                 document.getElementById(num_cues).classList.add("info");
                 document.getElementById("go").disabled = false;
                 document.getElementById("go").style.display = "block";
@@ -50,16 +59,17 @@ function add_music_cue(src) {
             var status_id = cell_id + "status";
             document.getElementById(status_id).innerHTML = "Ready"; 
         });
-        sound.on('loaderror', function(id, error){
+        howl_objects[num_cues][0].on('loaderror', function(id, error){
             var cell_id = cue_id + "_";
             var status_id = cell_id + "status";
             var duration_id = cell_id + "duration";
             document.getElementById(status_id).innerHTML = "Error"; 
             document.getElementById(duration_id).innerHTML = "00:00:00";
         });
-        sound.once('load', function(){
+        howl_objects[num_cues][0].on('load', function(){
             //add the time
             var duration = sound.duration();
+            console.log(duration);
             duration = (duration / 60).toFixed(2);
             duration = duration.replace(".", ":");
             var cell_id = cue_id + "_";
@@ -68,22 +78,17 @@ function add_music_cue(src) {
             document.getElementById(duration_id).innerHTML = duration;
             document.getElementById(status_id).innerHTML = "Ready";
         });
-        if (!howl_objects[num_cues]) {
-            howl_objects[num_cues] = [];
-        }
-        howl_objects[num_cues].push(sound);
-        console.log(howl_objects);
         var cue = cue_list.insertRow(-1);
         cue.setAttribute("id", cue_id);
         cue.setAttribute("class", "cue");
-        var title = src;
         var n = title.lastIndexOf('/');
         if (n !== -1) {
             var result = title.substring(n + 1);
             title = result.replace(/\.[^/.]+$/, "");
             var status = "Loading...";
-            var duration = "Calculating..";
-            var elements = [cue_id, title, duration, status];
+            var duration = "Calculating...";
+            var controls = "Controls";
+            var elements = [cue_id, title, duration, status, controls];
             for (var y = 0; y < elements.length; ++y) {
                 //add cell and create text
                 var cell = cue.insertCell(y);
@@ -120,16 +125,10 @@ function select_cue(row_id) {
     selected_id = row_id;
     //pass in id of row to select it
     if (selected_cue !== undefined) {
-        //todo reset previous row
-        //selected_cue.style.color = "white";
-        //selected_cue.style.background = "grey";
         selected_cue.classList.remove("cue_selected");
         selected_cue.classList.remove("info");
     }
     selected_cue = document.getElementById(row_id);
-    //todo improve styling of rows
-    //selected_cue.style.color = "blue";
-    //selected_cue.style.background = "white";
     selected_cue.classList.add("cue_selected");
     selected_cue.classList.add("info");
     selected_howler = howl_objects[row_id];
@@ -263,16 +262,42 @@ $("#cue_import_button").click(function(){
     $("#cue_import_file").click();
 });
 
+$("#show_import_button").click(function(){
+    $("#show_import_file").click();
+});
+
 // file selected
 $("#cue_import_file").change(function(){
-    var files = $('#cue_import_file')[0].files[0];
-    add_music_cue(files.path);
+    var cue = $('#cue_import_file')[0].files[0];
+    add_music_cue(cue.path);
+});
+
+// file selected
+$("#show_import_file").change(function(){
+    var show = $('#show_import_file')[0].files[0];
+    $.ajax({
+        url: "C:/Users/Ben/OneDrive/Documents/test.json",
+        dataType: "json",
+        success: function (json) {
+            // Process data here
+            if (!json.q) {
+                show_alert("Invalid File");
+            }
+            $("#show").html(json.name);
+            //delay to keep the order
+            var x = 300;
+            $.each(json.cues, function(i, cue) {
+                setTimeout(function() {
+                    add_music_cue(cue.src);
+                }, x);
+                x += 300;
+            });
+        }
+    });
 });
 
 //manual adding
 
-add_music_cue("C:/Users/Ben/OneDrive/Downloads/The Killers - Spaceman.mp3");
-add_music_cue("C:/Users/Ben/OneDrive/Downloads/The Killers - Be Still.mp3");
-add_music_cue("C:/Users/Ben/Downloads/The Killers - Be Still.mp3");
-add_music_cue("C:/Users/Ben/Downloads/The Killers - Be Still.mp3");
-add_music_cue("C:/Users/Ben/OneDrive/Downloads/The Wombats - Jump Into The Fog.mp3");
+//add_music_cue("C:/Users/Ben/OneDrive/Downloads/The Killers - Spaceman.mp3");
+//add_music_cue("C:/Users/Ben/OneDrive/Downloads/The Killers - Be Still.mp3");
+//add_music_cue("C:/Users/Ben/OneDrive/Downloads/The Wombats - Jump Into The Fog.mp3");

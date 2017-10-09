@@ -1,18 +1,18 @@
 {
-    "name": "q",
-    "version": "0.0.1",
-    "description": "",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/benconstable9/q"
-    },
-    "main": "main.js",
-    "scripts": {
-        "start": "electron ."
-    },
-    "bugs": {
-        "url": "https://github.com/benconstable9/q/issues"
-    },
-    "author": "Ben Constable",
-    "license": "MIT"
+  "name": "q",
+  "version": "0.0.2",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benconstable9/q"
+  },
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "bugs": {
+    "url": "https://github.com/benconstable9/q/issues"
+  },
+  "author": "Ben Constable",
+  "license": "MIT"
 }
