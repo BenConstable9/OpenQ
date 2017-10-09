@@ -28,8 +28,9 @@ setInterval(function() {
         var minutes = Math.floor(time / 60);
         var seconds = (time - minutes * 60).toFixed(0);
         seek_sec = minutes + ":" + seconds;
-        if (minutes == "NaN") {
-            seek_sec = "00:00";
+        console.log(minutes);
+        if (isNaN(seconds)) {
+            seek_sec = "0:0";
         }
         document.getElementById(position_id).innerHTML = seek_sec; 
     }

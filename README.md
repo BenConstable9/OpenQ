@@ -12,7 +12,7 @@ Music Cuing Software written with the Electron Framework.
 
 ## Known Issues
 
-- [ ] Length is not initially ste to placeholder
+None
 
 ## Future Developments
 
