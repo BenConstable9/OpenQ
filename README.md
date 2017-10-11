@@ -1,5 +1,5 @@
-# Q
-Music Cuing Software written with the Electron Framework.
+# OpenQ
+Music Cueing Software written with the Electron Framework.
 
 ## Latest Updates
 
@@ -9,6 +9,7 @@ Music Cuing Software written with the Electron Framework.
 - Rate feature
 - Volume feature
 - Import Show File
+- Save Show File
 
 ## Known Issues
 
@@ -19,7 +20,7 @@ None
 - [x] Implement file importer to import music. Currently this is achieved manually.
 - [x] Find way to retrieve music file details
 - [x] Implement importing of show file (json)
-- [ ] Implement show savings method
+- [x] Implement show savings method
 - [x] Add seek feature
 - [x] Add volume feature
 - [x] Add rate feature
