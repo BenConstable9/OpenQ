@@ -22,6 +22,13 @@
         "electron-updater": "1.1.0",
         "jquery-ui": "1.12.1"
     },
+    "build": {
+        "publish": [{
+            "provider": "github",
+            "owner": "benconstable9",
+            "repo": "openq"
+        }]
+    },
     "author": "Ben Constable",
     "license": "MIT",
     "copyright": "Copyright © 2017 Ben Constable"
