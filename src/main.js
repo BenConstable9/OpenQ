@@ -9,7 +9,8 @@ var mainWindow = null;
 const path = require('path');
 const url = require('url');
 
-const autoUpdater = require("electron-updater").autoUpdater;
+const log = require('electron-log');
+const {autoUpdater} = require("electron-updater");
 
 app.on('ready', function(){
     mainWindow = new BrowserWindow({
@@ -38,3 +39,16 @@ app.on('activate', function () {
         createWindow()
     }
 })
+
+autoUpdater.on('update-downloaded', (info) => {
+  // Wait 5 seconds, then quit and install
+  // In your application, you don't need to wait 5 seconds.
+  // You could call autoUpdater.quitAndInstall(); immediately
+  setTimeout(function() {
+    autoUpdater.quitAndInstall();  
+  }, 5000)
+})
+
+app.on('ready', function()  {
+  autoUpdater.checkForUpdates();
+});

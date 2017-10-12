@@ -14,14 +14,18 @@
     "bugs": {
         "url": "https://github.com/benconstable9/openq/issues"
     },
+    "devdependencies": {
+        "electron": "1.4.15"
+    },
     "dependencies": {
-        "electron": "1.4.15",
         "electron-updater": "^2.10.2",
         "howler": "2.0.5",
         "jquery": "3.2.1",
         "electron-updater": "1.1.0",
-        "jquery-ui": "1.12.1"
+        "jquery-ui": "1.12.1",
+        "electron-log": "2.2.9"
     },
+    "postinstall": "electron-builder install-app-deps",
     "build": {
         "publish": [{
             "provider": "github",
