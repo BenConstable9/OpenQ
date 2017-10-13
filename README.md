@@ -1,6 +1,8 @@
 # OpenQ
 Music cueing software that makes audio cueing easy. OpenQ supports Windows 7 or greater and provides a simmilar experiences across all platforms. Software updates are automatically added to ensure that you always recieve the best experience. Stable release coming soon.
 
+[Download the latest release here](https://www.github.com/benconstable9/openq/releases "OpenQ Releases")
+
 ## Latest Updates
 
 - Major Styling Changes

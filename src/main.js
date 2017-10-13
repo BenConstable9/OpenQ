@@ -1,4 +1,4 @@
-//Q
+//OpenQ
 //Main.js - Copyright Ben Constable 2017
 
 const electron = require('electron');
