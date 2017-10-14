@@ -16,25 +16,36 @@ var filepath = "";
 
 // ** FUNCTIONS **
 
+function pad(n, width, z) {
+    z = z || '0';
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
 //Update Slider Times
 setInterval(function() {
     if (selected_howler != "") {
         var time = selected_howler.seek();
         $('#seek-slider').slider('value', time);
         var minutes = Math.floor(time / 60);
+        minutes = pad(minutes, 2);
         var seconds = (time - minutes * 60).toFixed(0);
+        seconds = pad(seconds, 2);
         seek_sec = minutes + ":" + seconds;
         $( "#seek-slider-handle" ).text(seek_sec);
     }
-    for (var i = 1; i <= num_cues; i++) {
+    var rowCount = $('#cue_list >tbody >tr').length;
+    for (var i = 1; i <= rowCount; i++) {
         var time = howl_objects[i][0].seek();
         var cell_id = i + "_";
         var position_id = cell_id + "position";
         var minutes = Math.floor(time / 60);
-        var seconds = (time - minutes * 60).toFixed(0);
+        minutes = pad(minutes, 2);
+        var seconds = (time - minutes * 60).toFixed(0)
+        seconds = pad(seconds, 2);
         seek_sec = minutes + ":" + seconds;
         if (isNaN(seconds)) {
-            seek_sec = "0:0";
+            seek_sec = "00:00";
         }
         document.getElementById(position_id).innerHTML = seek_sec; 
     }
@@ -63,7 +74,7 @@ function show_message(message) {
 function write_file() {
     var file = {};
     var name = $("#show").html();
-    file.openq = "0.0.5";
+    file.openq = "1.0.0";
     file.name = name;
     file.cues = [];
     //get the cue content
@@ -76,6 +87,8 @@ function write_file() {
         var s = howl._src;
         var n = s.indexOf('?');
         cue_json.src = s.substring(0, n != -1 ? n : s.length);
+        var title_id = row.id + "_title";
+        cue_json.title = document.getElementById(title_id).innerHTML;
         cue_json.volume = howl._volume;
         cue_json.rate = howl._rate;
         file.cues.push(cue_json);
@@ -113,15 +126,16 @@ function save_file() {
 }
 
 //Add New Cue
-function add_cue(src, volume, rate) {
+function add_cue(src, title, volume, rate) {
+    //show the taskbar and the cue list
+    document.getElementById("start").style.display = "none";
+    document.getElementById("taskbar").style.display = "block";
+    document.getElementById("cue_list_div").style.display = "block";
     src = src.replace(/\\/g, "/");
-    var title = src;
     //add a random string to prevent howler.js confusion
     var random = Math.random();
     src = src + "?" + random;
     var request = $.get(src);
-    console.log(volume);
-    console.log(rate);
     request.done(function(result) {
         //create the howl
         var sound = new Howl({
@@ -166,7 +180,9 @@ function add_cue(src, volume, rate) {
             //add the time
             var duration = sound.duration();
             var minutes = Math.floor(duration / 60);
+            minutes = pad(minutes, 2);
             var seconds = (duration - minutes * 60).toFixed(0);
+            seconds = pad(seconds, 2);
             duration = minutes + ":" + seconds;
             var cell_id = cue_id + "_";
             var duration_id = cell_id + "duration";
@@ -178,51 +194,58 @@ function add_cue(src, volume, rate) {
         cue.setAttribute("id", cue_id);
         cue.setAttribute("class", "cue");
         var n = title.lastIndexOf('/');
-        if (n !== -1) {
-            var result = title.substring(n + 1);
-            title = result.replace(/\.[^/.]+$/, "");
-            var status = "Loading...";
-            var duration = "Calculating...";
-            var controls = "Controls";
-            var position = "00:00";
-            volume = (volume * 100);
-            volume = volume + "%";
-            rate = (rate * 100);
-            rate = rate + "%";
-            var elements = [cue_id, title, duration, position, volume, rate, status, controls];
-            for (var y = 0; y < elements.length; ++y) {
-                //add cell and create text
-                var cell = cue.insertCell(y);
-                var name = "";
-                if (y == 0) {
-                    name = "num";
-                }
-                else if (y == 1) {
-                    name = "title";
-                }
-                else if (y == 2) {
-                    name = "duration";
-                }
-                else if (y == 3) {
-                    name = "position";
-                }
-                else if (y == 4) {
-                    name = "volume";
-                }
-                else if (y == 5) {
-                    name = "rate";
-                }
-                else if (y == 6) {
-                    name = "status";
-                }
-                var cell_id = cue_id + "_" + name;
-                cell.setAttribute("id", cell_id);
-                cell.innerHTML = elements[y];
+        var result = title.substring(n + 1);
+        title = result.replace(/\.[^/.]+$/, "");
+        var status = "Loading...";
+        var duration = "Calculating...";
+        var controls = "Controls";
+        var position = "00:00";
+        volume = (volume * 100);
+        volume = volume + "%";
+        rate = (rate * 100);
+        rate = rate + "%";
+        var cue_num = $('#cue_list >tbody >tr').length;
+        var start = "00:00";
+        var end = "00:00";
+        var elements = [cue_num, title, duration, position, start, end, volume, rate, status, controls];
+        for (var y = 0; y < elements.length; ++y) {
+            //add cell and create text
+            var cell = cue.insertCell(y);
+            var name = "";
+            if (y == 0) {
+                name = "num";
             }
-            document.getElementById(cue_id).addEventListener("click", function() {
-                select_cue(cue_id);
-            });
+            else if (y == 1) {
+                name = "title";
+            }
+            else if (y == 2) {
+                name = "duration";
+            }
+            else if (y == 3) {
+                name = "position";
+            }
+            else if (y == 4) {
+                name = "start";
+            }
+            else if (y == 5) {
+                name = "end";
+            }
+            else if (y == 6) {
+                name = "volume";
+            }
+            else if (y == 7) {
+                name = "rate";
+            }
+            else if (y == 8) {
+                name = "status";
+            }
+            var cell_id = cue_id + "_" + name;
+            cell.setAttribute("id", cell_id);
+            cell.innerHTML = elements[y];
         }
+        document.getElementById(cue_id).addEventListener("click", function() {
+            select_cue(cue_id);
+        });
     });
     request.fail(function(jqXHR, textStatus, errorThrown) {
         var error = "Unable to load file - " + src;
@@ -230,11 +253,25 @@ function add_cue(src, volume, rate) {
     });
 }
 
+function renumber() {
+    console.log("Renumbering Cues");
+    var cues = document.getElementsByClassName("cue");
+    if (cues.length > 0) {
+        for (var i = 0; i < cues.length; i++) {
+            //get the id of the length
+            cues[i].firstChild.innerHTML = (i + 1);
+        }
+    }
+}
+
 //Select a Cue
 function select_cue(row_id) {
     selected_id = row_id;
     //pass in id of row to select it
-    if (selected_cue !== undefined) {
+    if (selected_cue == "") {
+        console.log("Deletion Redirect");
+    }
+    else if (selected_cue !== undefined && selected_cue != "") {
         selected_cue.classList.remove("cue_selected");
         selected_cue.classList.remove("info");
     }
@@ -467,15 +504,66 @@ $( "#rate-slider" ).slider({
     }
 });
 
+//detect change in name
+$('#cue_name').bind('input', function() {
+    var name_id = selected_id + "_title";
+    document.getElementById(name_id).innerHTML = $('#cue_name').val();
+});
+
 //Button Event Listeners
-document.getElementById("go").addEventListener("click", fire_cue);
-document.getElementById("fade").addEventListener("click", fade_cue);
-document.getElementById("pause").addEventListener("click", pause_cue);
-document.getElementById("stop").addEventListener("click", stop_cue);
-document.getElementById("play").addEventListener("click", fire_cue);
+
+$("#go").click(function(){
+    fire_cue();
+});
+
+$("#fade").click(function(){
+    fade_cue();
+});
+
+$("#pause").click(function(){
+    pause_cue();
+});
+
+$("#stop").click(function(){
+    stop_cue();
+});
+
+$("#play").click(function(){
+    fire_cue();
+});
+
+$("#cue_delete_button").click(function(){
+    if (selected_id != "") {
+        //find the id
+        document.getElementById(selected_id).remove();
+        //delete the howler
+        howl_objects[selected_id][0].unload();
+        delete howl_objects[selected_id];
+        //select another cue
+        selected_howler = "";
+        selected_cue = "";
+        selected_id = "";
+        var new_cue_id = $("#cue_list").find(' tbody tr:first').attr('id');
+        var rowCount = $('#cue_list >tbody >tr').length;
+        if (rowCount > 0) {
+            select_cue(new_cue_id);
+            renumber();
+        }
+        else {
+            //hide the taskbar and the cue list
+            document.getElementById("start").style.display = "block";
+            document.getElementById("taskbar").style.display = "none";
+            document.getElementById("cue_list_div").style.display = "none";
+        }
+    }
+});
 
 // Open file selector on div click
 $("#cue_import_button").click(function(){
+    $("#cue_import_file").click();
+});
+
+$("#start_cue_import_button").click(function(){
     $("#cue_import_file").click();
 });
 
@@ -487,11 +575,15 @@ $("#show_import_button").click(function(){
     $("#show_import_file").click();
 });
 
+$("#start_show_import_button").click(function(){
+    $("#show_import_file").click();
+});
+
 // file selected
 $("#cue_import_file").change(function(){
     var cue = $('#cue_import_file')[0].files[0];
     $('#cue_import_file').val("");
-    add_cue(cue.path, 1, 1);
+    add_cue(cue.path, cue.path, 1, 1);
 });
 
 // file selected
@@ -516,8 +608,12 @@ $("#show_import_file").change(function(){
             //delay to keep the order
             var x = 300;
             $.each(json.cues, function(i, cue) {
+                if (cue.title == "") {
+                    cue.title = cue.src;
+                }
+                console.log(cue.title);
                 setTimeout(function() {
-                    add_cue(cue.src, cue.volume, cue.rate);
+                    add_cue(cue.src, cue.title, cue.volume, cue.rate);
                 }, x);
                 x += 300;
             });

@@ -12,6 +12,7 @@ Music cueing software that makes audio cueing easy. OpenQ supports Windows 7 or 
 - Volume feature
 - Import Show File
 - Save Show File
+- Delete Cues
 
 ## Known Issues
 
@@ -26,7 +27,7 @@ None
 - [x] Add seek feature
 - [x] Add volume feature
 - [x] Add rate feature
-- [ ] Package as an installable app once all above points are met
+- [x] Package as an installable app once all above points are met
 - [ ] Add Auto Updater
 
 ## License

@@ -14,9 +14,10 @@ const {autoUpdater} = require("electron-updater");
 
 app.on('ready', function(){
     mainWindow = new BrowserWindow({
-        width: 1280,
+        width: 1080,
         height: 720
     });
+    mainWindow.maximize();
     mainWindow.loadURL(url.format({
         pathname: path.join(__dirname, 'app/index.html'),
         protocol: 'file:',

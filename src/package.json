@@ -1,8 +1,8 @@
 {
     "name": "OpenQ",
     "productName": "OpenQ",
-    "version": "0.0.7",
-    "description": "",
+    "version": "1.0.0",
+    "description": "Simple Audio Cueing",
     "repository": {
         "type": "git",
         "url": "https://github.com/benconstable9/openq"

@@ -30,12 +30,33 @@ a {
     margin-bottom: 0px;
 }
 
+/* Start Screen */
+#start {
+    text-align: center;
+}
+
+#logo {
+    width: 40%;
+}
+
+.icon {
+    color: #333;
+    font-size: 120px;
+}
+
+.caption {
+    font-size: 18px;
+    font-weight: bold;
+    color: grey;
+}
+
 /* Cue List */
 #cue_list_div {
     width: 100%;
     height: 70%;
     overflow-y: scroll;
     border-top-width: 2px;
+    display: none;
 }
 #cue_list_div::-webkit-scrollbar {
     width: 1em;
@@ -66,6 +87,7 @@ a {
 
 /* Task Bar */
 #taskbar {
+    display: none;
     bottom: 0px;
     border-radius: 0px;
     position: fixed;

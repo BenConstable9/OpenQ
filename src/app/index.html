@@ -36,12 +36,12 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">More <span class="caret"></span></a>
                         <ul class="dropdown-menu">
-                        <li><a href="#">Delete Cue</a></li>
+                        <li><a id="cue_delete_button">Delete Cue</a></li>
                         <li><a href="#">Lock Modification</a></li>
                         <li><a href="#">Unlock Modification</a></li>
                         <li role="separator" class="divider"></li>
-                        <li><a>OpenQ - v0.0.7</a></li>
-                        <li><a>Copyright &copy; Ben Constable</a></li>
+                        <li><a href="https://github.com/benconstable9/openq" target="_blank">OpenQ - v1.0.0</a></li>
+                        <li><a href="https://github.com/benconstable9" target="_blank">Copyright &copy; Ben Constable</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -55,6 +55,28 @@
     <!-- Show Message -->
     <div id="messagediv"></div>
     
+    <div id="start">
+        <br>
+        <img id="logo" src="img/logo.png" alt="">
+        <p class="lead">Simple Audio Cueing</p>
+        <p>Welcome to OpenQ - open source audio cueing software powered by Javascript.<br>Learn more about OpenQ <a href="https://github.com/benconstable9/openq" target="_blank">here.</a> Get started now:</p>
+        <br>
+        <div class="row">
+            <a id="start_cue_import_button">
+                <div class="col-sm-2 col-sm-offset-4">
+                    <i class="fa fa-download fa-fw fa-5x icon" aria-hidden="true"></i>
+                    <br><br><p class="caption">Import Cue</p>
+                </div>
+            </a>
+            <a id="start_show_import_button">
+                <div class="col-sm-2">
+                    <i class="fa fa-list-ol fa-fw fa-5x icon" aria-hidden="true"></i>
+                    <br><br><p class="caption">Import Show</p>
+                </div>
+            </a>
+        </div>
+    </div>
+    
     <!-- Cue List -->
     <div id="cue_list_div">
         <table id="cue_list" class="table table-striped table-hover table-condensed">
@@ -64,6 +86,8 @@
                 <th>Title</th>
                 <th>Length</th>
                 <th>Position</th>
+                <th>Start</th>
+                <th>End</th>
                 <th>Volume</th>
                 <th>Rate</th>
                 <th>Status</th>
@@ -80,7 +104,7 @@
         <div id="controls" class="panel-body taskbar fullheight">
             <div class="row fullheight fullheight">
                 <div class="col-sm-3 fullheight">
-                    <input type="text" id="cue_name" class="form-control input-lg" placeholder="No Cue Selected" disabled>
+                    <input type="text" id="cue_name" class="form-control input-lg" placeholder="No Cue Selected">
                     <span class="label">Rate:</span>
                     <div id="rate-slider">
                         <div id="rate-slider-handle" class="ui-slider-handle"></div>
