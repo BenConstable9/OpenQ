@@ -19,8 +19,9 @@ Music cueing software that makes audio cueing easy. OpenQ supports Windows 7 or 
 - [ ] Empty Cue List
 - [ ] Cleaner Interface
 - [ ] Set Cue Start and End Points
-- [ ] Add Auto Updater
+- [ ] Auto Updater
 - [ ] Rename Cues
+- [ ] Logo and Branding
 
 ## Known Issues
 
