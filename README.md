@@ -1,34 +1,41 @@
-# OpenQ
-Music cueing software that makes audio cueing easy. OpenQ supports Windows 7 or greater and provides a simmilar experiences across all platforms. Software updates are automatically added to ensure that you always recieve the best experience. Stable release coming soon.
+# OpenQ - v0.0.7
+Music cueing software that makes audio cueing easy. OpenQ supports Windows 7 or greater and provides a simmilar experiences across all platforms. Software updates are automatically added to ensure that you always recieve the best experience. Stable release coming soon. 
 
 [Download the latest release here](https://www.github.com/benconstable9/openq/releases "OpenQ Releases")
 
 ## Latest Updates
 
-- Major Styling Changes
-- Import Cue Syste,
+- Import Cue System
 - Seek feature
 - Rate feature
 - Volume feature
 - Import Show File
 - Save Show File
-- Delete Cues
+
+## Coming in v1.0.0
+
+- [x] Delete Cues
+- [ ] Lock Cue List Modification
+- [ ] Empty Cue List
+- [ ] Cleaner Interface
+- [ ] Set Cue Start and End Points
+- [ ] Add Auto Updater
+- [ ] Rename Cues
 
 ## Known Issues
 
 None
 
-## Future Developments
+## Dependencies
 
-- [x] Implement file importer to import music. Currently this is achieved manually.
-- [x] Find way to retrieve music file details
-- [x] Implement importing of show file (json)
-- [x] Implement show savings method
-- [x] Add seek feature
-- [x] Add volume feature
-- [x] Add rate feature
-- [x] Package as an installable app once all above points are met
-- [ ] Add Auto Updater
+OpenQ would not be possible without the great work of several projects including:
+
+- JQuery
+- Electron
+- Electron Build
+- Howlerjs
+- Bootstrap
+- Font Awesome
 
 ## License
 
@@ -44,3 +51,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ## Contributing
 
 We welcome contributors! Before contributing, please send me a message to dicuss project goals.
+
+---
+
+OpenQ is just a project name, if you feel I should not be using this name, please contact to me and I will change it.
