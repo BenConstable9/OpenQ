@@ -23,7 +23,7 @@
         <div class="container-fluid">
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
-                <span class="navbar-brand">OpenQ - <span id="show">Unsaved Show</span></span>
+                <span class="navbar-brand">OpenQ - <span id="show">Unsaved Show</span> <span id="unlocked">(<i class="fa fa-unlock" aria-hidden="true"></i>)</span><span id="locked">(<i class="fa fa-lock" aria-hidden="true"></i>)</span></span>
             </div>
             <input id="cue_import_file" type="file" accept=".mp3,.wav" style="display:none;">
             <input id="show_import_file" type="file" accept=".json" style="display:none;">
@@ -32,13 +32,13 @@
                 <ul class="nav navbar-nav navbar-right">
                     <li><a id="cue_import_button">Import Cue</a></li>
                     <li><a id="save_show_button">Save Show</a></li>
-                    <li><a id='show_import_button'>Import Show (.json)</a></li>
+                    <li><a id='show_import_button'>Import Show</a></li>
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">More <span class="caret"></span></a>
                         <ul class="dropdown-menu">
-                        <li><a id="cue_delete_button">Delete Cue</a></li>
-                        <li><a href="#">Lock Modification</a></li>
-                        <li><a href="#">Unlock Modification</a></li>
+                        <li><a id="empty_list">Empty Cue List</a></li>
+                        <li><a id="lock_mod">Lock Modification</a></li>
+                        <li><a id="unlock_mod">Unlock Modification</a></li>
                         <li role="separator" class="divider"></li>
                         <li><a href="https://github.com/benconstable9/openq" target="_blank">OpenQ - v1.0.0</a></li>
                         <li><a href="https://github.com/benconstable9" target="_blank">Copyright &copy; Ben Constable</a></li>
@@ -59,7 +59,7 @@
         <br>
         <img id="logo" src="img/logo.png" alt="">
         <p class="lead">Simple Audio Cueing</p>
-        <p>Welcome to OpenQ - open source audio cueing software powered by Javascript.<br>Learn more about OpenQ <a href="https://github.com/benconstable9/openq" target="_blank">here.</a> Get started now:</p>
+        <p>Welcome to OpenQ - simple open source audio cueing software powered by Javascript.<br>Learn more about OpenQ <a href="https://github.com/benconstable9/openq" target="_blank">here.</a> Get started now:</p>
         <br>
         <div class="row">
             <a id="start_cue_import_button">
@@ -75,6 +75,8 @@
                 </div>
             </a>
         </div>
+        <br>
+        <p>Designed By Ben Constable</p>
     </div>
     
     <!-- Cue List -->
@@ -85,7 +87,8 @@
                 <th>#</th>
                 <th>Title</th>
                 <th>Length</th>
-                <th>Position</th>
+                <th>Elapsed</th>
+                <th>Remain</th>
                 <th>Start</th>
                 <th>End</th>
                 <th>Volume</th>
@@ -104,16 +107,34 @@
         <div id="controls" class="panel-body taskbar fullheight">
             <div class="row fullheight fullheight">
                 <div class="col-sm-3 fullheight">
-                    <input type="text" id="cue_name" class="form-control input-lg" placeholder="No Cue Selected">
+                    <input type="text" id="cue_name" class="form-control input-lg" placeholder="No Cue Selected" data-toggle="tooltip" title="Rename Cue">
                     <span class="label">Rate:</span>
-                    <div id="rate-slider">
+                    <div id="rate-slider" data-toggle="tooltip" title="Change Cue Rate">
                         <div id="rate-slider-handle" class="ui-slider-handle"></div>
                     </div>
                 </div>
                 <div class="col-sm-6 fullheight">
-                    <center><button id="pause" class="btn btn-default" disabled><i class="fa fa-pause" aria-hidden="true"></i></button> <button id="play" class="btn btn-default btn-lg" disabled><i class="fa fa-play" aria-hidden="true"></i></button> <button id="stop" class="btn btn-default" disabled><i class="fa fa-stop" aria-hidden="true"></i></button></center>
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <div class = "input-group">
+                                <input id="start_minute" type="number" class="form-control input-lg minute" placeholder="00" data-toggle="tooltip" title="Set Start Minute" max="59" min="00">
+                                <span class="input-group-addon"><strong>:</strong></span>
+                                <input id="start_second" type="number" class ="form-control input-lg second" placeholder="00" data-toggle="tooltip" title="Set Start Second" max="59" min="00">
+                            </div>
+                        </div>
+                        <div class="col-xs-6">
+                            <center><button id="pause" class="btn btn-default" disabled><i class="fa fa-pause" aria-hidden="true"></i></button> <button id="play" class="btn btn-default btn-lg" disabled><i class="fa fa-play" aria-hidden="true"></i></button> <button id="stop" class="btn btn-default" disabled><i class="fa fa-stop" aria-hidden="true"></i></button></center>
+                        </div>
+                        <div class="col-xs-3">
+                            <div class = "input-group">
+                                <input id="end_minute" type="number" class="form-control input-lg minute" placeholder="00" data-toggle="tooltip" title="Set End Minute" max="59" min="00">
+                                <span class="input-group-addon"><strong>:</strong></span>
+                                <input id="end_second" type="number" class="form-control input-lg second" placeholder="00" data-toggle="tooltip" title="Set End Second" max="59" min="00">
+                            </div>
+                        </div>
+                    </div>
                     <span class="label">Seek:</span>
-                    <div id="seek-slider">
+                    <div id="seek-slider" data-toggle="tooltip" title="Seek Cue Position">
                         <div id="seek-slider-handle" class="ui-slider-handle"></div>
                     </div>
                 </div>
@@ -121,7 +142,7 @@
                     <button id="go" class="btn btn-lg btn-success btn-block" disabled>FIRE CUE</button>
                     <button id="fade" class="btn btn-lg btn-danger btn-block">FADE OUT</button>
                     <span class="label">Volume:</span>
-                    <div id="volume-slider">
+                    <div id="volume-slider" data-toggle="tooltip" title="Change Cue Volume">
                         <div id="volume-slider-handle" class="ui-slider-handle"></div>
                     </div>
                 </div>

@@ -1,7 +1,7 @@
-version: 0.0.7
-releaseDate: '2017-10-12T13:18:08.558Z'
-path: OpenQ Setup 0.0.7.exe
+version: 1.0.0
+releaseDate: '2017-10-16T19:55:15.774Z'
+path: OpenQ Setup 1.0.0.exe
 sha512: >-
-  GXRTC5E2CTXY2SmjMw61oae88Vy/ITEII/85Hh5Jg4mtDn0atq0w0dUkB3kCDAH7XgXVBKcHwF67q2W3iWfUsQ==
-sha2: b435146a464a8dbfd8e1e166470711d9b4111a774ebabb3762ba8941bfc18d4c
-githubArtifactName: OpenQ-Setup-0.0.7.exe
+  Rw5C1tmZRjZyHc+YgSQJbj7c0eEFvLC33vx02wsexphcrlgWaKjXEKwpc88vk+A5OtSb9XajwqJdg3JQvqkn/g==
+sha2: d9ff3d4bd19cd13a974a808d080a7023d9f6b2f3602af8b3567aaa82b8ca1c01
+githubArtifactName: OpenQ-Setup-1.0.0.exe

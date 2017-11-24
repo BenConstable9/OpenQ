@@ -13,6 +13,11 @@ a {
     cursor: pointer;
 }
 
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+}
+
 /* Background */
 ::selection { 
     background: transparent;
@@ -28,6 +33,10 @@ a {
 #header {
     top: 0px;
     margin-bottom: 0px;
+}
+
+#locked {
+    display: none;
 }
 
 /* Start Screen */
@@ -75,6 +84,18 @@ a {
     width: 100%;
     margin-bottom: 0px;
 }
+.inline_controls {
+    cursor: default;
+}
+.order {
+    cursor: move;
+}
+.delete {
+    cursor: pointer;
+}
+.target {
+    display: none;
+}
 
 /* Individual Cue */
 .cue {
@@ -105,6 +126,18 @@ a {
     padding-right: 35px;
     padding-left: 35px;
     text-align: center;
+}
+.minute {
+    padding: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align: right;
+}
+.second {
+    padding: 10px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align: left;
 }
 #go {
     font-weight: bold;

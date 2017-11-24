@@ -1,29 +1,24 @@
 ![OpenQ](https://github.com/BenConstable9/OpenQ/blob/master/src/app/img/logo.png "OpenQ Logo")
 
-# OpenQ - v0.0.7
-Music cueing software that makes audio cueing easy. OpenQ supports Windows 7 or greater and provides a simmilar experiences across all platforms. Software updates are automatically added to ensure that you always recieve the best experience. Stable release coming soon. 
+# OpenQ - v1.0.0
+Music cueing software that makes audio cueing easy. OpenQ supports Windows 7 or greater and provides a simmilar experiences across all platforms. Software updates are automatically added to ensure that you always recieve the best experience. 
 
-[Download the latest release here](https://www.github.com/benconstable9/openq/releases "OpenQ Releases")
+v1.0.0 is our first stable release with all planned features implemented - whilst we have tested it to ensure reliability, we cannot garuntee 100% reliability and therefore are not responsible for any crashes or errors. See below for full license details.
 
-## Latest Updates
+[Download the latest release](https://www.github.com/benconstable9/openq/releases "OpenQ Releases")
 
-- Import Cue System
-- Seek feature
-- Rate feature
-- Volume feature
-- Import Show File
-- Save Show File
+## New in v1.0.0
 
-## Coming in v1.0.0
-
-- [x] Delete Cues
-- [x] Lock Cue List Modification
-- [x] Empty Cue List
-- [ ] Cleaner Interface
-- [ ] Set Cue Start and End Points
-- [x] Auto Updater
-- [x] Rename Cues
-- [x] Logo and Branding
+- Delete Cues
+- Lock Cue List Modification
+- Empty Cue List
+- Cleaner Interface
+- Set Cue Start and End Points
+- Reorder Cues
+- Keyboard Hotkey (Enter)
+- Auto Updater
+- Rename Cues
+- Logo and Branding
 
 ## Known Issues
 

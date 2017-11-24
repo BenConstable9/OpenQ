@@ -14,24 +14,30 @@
     "bugs": {
         "url": "https://github.com/benconstable9/openq/issues"
     },
-    "devdependencies": {
-        "electron": "1.4.15"
+    "devDependencies": {
+        "electron": "1.4.15",
+        "electron-builder": "^19.37.2"
     },
     "dependencies": {
-        "electron-updater": "^2.10.2",
+        "electron-log": "2.2.9",
+        "electron-updater": "1.1.0",
         "howler": "2.0.5",
         "jquery": "3.2.1",
-        "electron-updater": "1.1.0",
-        "jquery-ui": "1.12.1",
-        "electron-log": "2.2.9"
+        "jquery-ui": "1.12.1"
     },
     "postinstall": "electron-builder install-app-deps",
     "build": {
-        "publish": [{
-            "provider": "github",
-            "owner": "benconstable9",
-            "repo": "openq"
-        }]
+        "publish": [
+            {
+                "provider": "github",
+                "owner": "benconstable9",
+                "repo": "openq"
+            }
+        ],
+        "files": [
+            "**/*",
+            "build/icon.*"
+        ]
     },
     "author": "Ben Constable",
     "license": "MIT",

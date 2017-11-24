@@ -15,7 +15,8 @@ const {autoUpdater} = require("electron-updater");
 app.on('ready', function(){
     mainWindow = new BrowserWindow({
         width: 1080,
-        height: 720
+        height: 720,
+        icon: path.join(__dirname, 'app/img/icon.ico')
     });
     mainWindow.maximize();
     mainWindow.loadURL(url.format({
