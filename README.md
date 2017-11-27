@@ -1,11 +1,17 @@
 ![OpenQ](https://github.com/BenConstable9/OpenQ/blob/master/src/app/img/logo.png "OpenQ Logo")
 
-# OpenQ - v1.0.0
-Music cueing software that makes audio cueing easy. OpenQ supports Windows 7 or greater and provides a simmilar experiences across all platforms. Software updates are automatically added to ensure that you always recieve the best experience. 
+# OpenQ - v1.1.0
+Cueing software that makes audio & video cueing easy. OpenQ supports Windows 7 or greater and provides a simmilar experiences across all platforms. Software updates are automatically added to ensure that you always recieve the best experience. 
 
-v1.0.0 is our first stable release with all planned features implemented - whilst we have tested it to ensure reliability, we cannot garuntee 100% reliability and therefore are not responsible for any crashes or errors. See below for full license details.
+v1.1.0 is our second stable release with the introduction of video cueing - whilst we have tested it to ensure reliability, we cannot garuntee 100% reliability and therefore are not responsible for any crashes or errors. See below for full license details.
 
 [Download the latest release](https://www.github.com/benconstable9/openq/releases "OpenQ Releases")
+
+## Coming Soon in v1.1.0
+
+- Video Cueing
+- Quicker loading time for audio and video
+- Launch video output screen quickly
 
 ## New in v1.0.0
 
@@ -22,7 +28,7 @@ v1.0.0 is our first stable release with all planned features implemented - whils
 
 ## Known Issues
 
-None
+- Scrubbing through tracks at high speed can cause issues with slider handle display text, does not effect operation.
 
 ## Dependencies
 
