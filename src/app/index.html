@@ -25,7 +25,7 @@
             <div class="navbar-header">
                 <span class="navbar-brand">OpenQ - <span id="show">Unsaved Show</span> <span id="unlocked">(<i class="fa fa-unlock" aria-hidden="true"></i>)</span><span id="locked">(<i class="fa fa-lock" aria-hidden="true"></i>)</span></span>
             </div>
-            <input id="cue_import_file" type="file" accept=".mp3,.wav" style="display:none;">
+            <input id="cue_import_file" type="file" accept=".mp3,.wav,.mp4,.ogg" style="display:none;">
             <input id="show_import_file" type="file" accept=".json" style="display:none;">
             
             <div class="collapse navbar-collapse">
@@ -36,6 +36,7 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">More <span class="caret"></span></a>
                         <ul class="dropdown-menu">
+                        <li><a id="enable_video">Enable Video Output</a></li>
                         <li><a id="empty_list">Empty Cue List</a></li>
                         <li><a id="lock_mod">Lock Modification</a></li>
                         <li><a id="unlock_mod">Unlock Modification</a></li>
@@ -58,8 +59,8 @@
     <div id="start">
         <br>
         <img id="logo" src="img/logo.png" alt="">
-        <p class="lead">Simple Audio Cueing</p>
-        <p>Welcome to OpenQ - simple open source audio cueing software powered by Javascript.<br>Learn more about OpenQ <a href="https://github.com/benconstable9/openq" target="_blank">here.</a> Get started now:</p>
+        <p class="lead">Simple Audio &amp; Video Cueing</p>
+        <p>Welcome to OpenQ - simple open source audio and video cueing software powered by Javascript.<br>Learn more about OpenQ <a href="https://github.com/benconstable9/openq" target="_blank">here.</a> Get started now:</p>
         <br>
         <div class="row">
             <a id="start_cue_import_button">
@@ -86,6 +87,7 @@
             <thead>
                 <th>#</th>
                 <th>Title</th>
+                <th>Type</th>
                 <th>Length</th>
                 <th>Elapsed</th>
                 <th>Remain</th>
@@ -108,9 +110,11 @@
             <div class="row fullheight fullheight">
                 <div class="col-sm-3 fullheight">
                     <input type="text" id="cue_name" class="form-control input-lg" placeholder="No Cue Selected" data-toggle="tooltip" title="Rename Cue">
-                    <span class="label">Rate:</span>
-                    <div id="rate-slider" data-toggle="tooltip" title="Change Cue Rate">
-                        <div id="rate-slider-handle" class="ui-slider-handle"></div>
+                    <div id="rate">
+                        <span class="label">Rate:</span>
+                        <div id="rate-slider" data-toggle="tooltip" title="Change Cue Rate">
+                            <div id="rate-slider-handle" class="ui-slider-handle"></div>
+                        </div>
                     </div>
                 </div>
                 <div class="col-sm-6 fullheight">
@@ -149,6 +153,10 @@
             </div>
         </div>
     </div>
+    
+    <!-- Loader for duraiton etc -->
+    <video id="cue_loader" src="" muted>
+    </video>
     
     <!-- Scripts -->
     <script src="../node_modules/howler/src/howler.core.js"></script>

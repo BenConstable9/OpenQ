@@ -3,7 +3,14 @@
 
 //Call In Depndcies
 const {dialog} = require('electron').remote;
+const electron = require('electron').remote;
+const {remote, ipcRenderer} = require ('electron');
+const BrowserWindow = require('electron').remote.BrowserWindow;
+const url = require('url');
+const path = require('path');
 var fs = require('fs');
+
+ipcRenderer.on ('message', (event, message) => { console.log (message); });
 
 // ** VARIABLES **
 var locked = false;
@@ -13,9 +20,15 @@ var selected_cue;
 var cue_volume;
 var howl_objects = [];
 var selected_howler = "";
+var selected_video_source = "";
 var filepath = "";
 
 // ** FUNCTIONS **
+
+function external_screen() {
+    //trigger the external display
+    ipcRenderer.send('async', "ExternalScreen");
+}
 
 function pad(n, width, z) {
     z = z || '0';
@@ -45,34 +58,36 @@ setInterval(function() {
             var length_id = cell_id + "duration";
             var fadeout = document.getElementById(end_id).innerHTML;
             var length = document.getElementById(length_id).innerHTML;
-            var time = howl_objects[cue_id][0].seek();
-            var position_id = cell_id + "position";
-            var remain_id = cell_id + "remaining";
-            var minutes = Math.floor(time / 60);
-            minutes = pad(minutes, 2);
-            var seconds = (time - minutes * 60).toFixed(0)
-            seconds = pad(seconds, 2);
-            seek_sec = minutes + ":" + seconds;
-            if (isNaN(seconds)) {
-                seek_sec = "00:00";
-            }
-            var end_time = fadeout.split(":");
-            var end_seconds = (60 * parseFloat(end_time[0])) + parseFloat(end_time[1]);
-            var remaining = end_seconds - time;
-            if (remaining >= 0) {
-                var remaining_minutes = Math.floor(remaining / 60);
-                remaining_minutes = pad(remaining_minutes, 2);
-                var remaining_seconds = (remaining - remaining_minutes * 60).toFixed(0)
-                remaining_seconds = pad(remaining_seconds, 2);
-                var remaining_formatted = remaining_minutes + ":" + remaining_seconds;
-            }
-            else {
-                var remaining_formatted = "00:00";
-            }
-            document.getElementById(remain_id).innerHTML = remaining_formatted;
-            document.getElementById(position_id).innerHTML = seek_sec; 
-            if (fadeout == seek_sec && seek_sec != "00:00" && length != seek_sec) {
-                fade_cue(cue_id);
+            if (cues[i].dataset.type == "Audio") {
+                var time = howl_objects[cue_id][0].seek();
+                var position_id = cell_id + "position";
+                var remain_id = cell_id + "remaining";
+                var minutes = Math.floor(time / 60);
+                minutes = pad(minutes, 2);
+                var seconds = (time - minutes * 60).toFixed(0)
+                seconds = pad(seconds, 2);
+                seek_sec = minutes + ":" + seconds;
+                if (isNaN(seconds)) {
+                    seek_sec = "00:00";
+                }
+                var end_time = fadeout.split(":");
+                var end_seconds = (60 * parseFloat(end_time[0])) + parseFloat(end_time[1]);
+                var remaining = end_seconds - time;
+                if (remaining >= 0) {
+                    var remaining_minutes = Math.floor(remaining / 60);
+                    remaining_minutes = pad(remaining_minutes, 2);
+                    var remaining_seconds = (remaining - remaining_minutes * 60).toFixed(0)
+                    remaining_seconds = pad(remaining_seconds, 2);
+                    var remaining_formatted = remaining_minutes + ":" + remaining_seconds;
+                }
+                else {
+                    var remaining_formatted = "00:00";
+                }
+                document.getElementById(remain_id).innerHTML = remaining_formatted;
+                document.getElementById(position_id).innerHTML = seek_sec; 
+                if (fadeout == seek_sec && seek_sec != "00:00" && length != seek_sec) {
+                    fade_cue(cue_id);
+                }
             }
         }
     }
@@ -105,22 +120,22 @@ function write_file() {
     file.name = name;
     file.cues = [];
     //get the cue content
-    var cues = document.getElementById("cue_list_body");
-    for (var i = 0, row; row = cues.rows[i]; i++) {
+    var cues = document.getElementsByClassName("cue");
+    for (var i = 0; i < cues.length; i++) {
+        var row = cues[i];
         var cue_json = {};
-        //get the howler details
-        var howl = howl_objects[row.id][0];
-        console.log(howl);
-        var s = howl._src;
+        var s = row.dataset.src;
         var n = s.indexOf('?');
         cue_json.src = s.substring(0, n != -1 ? n : s.length);
-        cue_json.type = "audio";
+        cue_json.type = row.dataset.type;
         var title_id = row.id + "_title";
         var start_id = row.id + "_start";
         var end_id = row.id + "_end";
+        var rate_id = row.id + "_rate";
+        var volume_id = row.id + "_volume";
         cue_json.title = document.getElementById(title_id).innerHTML;
-        cue_json.volume = howl._volume;
-        cue_json.rate = howl._rate;
+        cue_json.volume = (parseFloat(document.getElementById(volume_id).innerHTML.replace("%", ""))) / 100;
+        cue_json.rate = (parseFloat(document.getElementById(volume_id).innerHTML.replace("%", ""))) / 100;
         cue_json.start = document.getElementById(start_id).innerHTML;
         cue_json.end = document.getElementById(end_id).innerHTML;
         file.cues.push(cue_json);
@@ -219,81 +234,100 @@ function add_cue(src, title, volume, rate, start, end) {
     document.getElementById("taskbar").style.display = "block";
     document.getElementById("cue_list_div").style.display = "block";
     src = src.replace(/\\/g, "/");
+    //now detect the cue type - audio or video
+    var format = src.split('.').pop().toLowerCase();
+    var videos = ["mp4", "ogg", "webm"];
+    console.log(format);
+    if (videos.indexOf(format) >= 0) {
+        var type = "Video";
+    }
+    else {
+        var type = "Audio"; 
+    }
     //add a random string to prevent howler.js confusion
     var random = Math.random();
     src = src + "?" + random;
-    var request = $.get(src);
-    request.done(function(result) {
-        //create the howl
-        var sound = new Howl({
-            src: [src],
-            preload: true,
-        });
+    //var request = $.get(src);
+    var loader = document.getElementById("cue_loader");
+    loader.src = src;
+    loader.load();
+    //request.done(function(result) {
+    loader.onloadeddata  = function() {
         //this adds the music to the list of songs (position is defaulted to last)
         var cue_list = document.getElementById("cue_list_body");
         //make sure to add them with the class cue
         num_cues += 1;
         var cue_id = num_cues;
-        if (!howl_objects[num_cues]) {
-            howl_objects[num_cues] = [];
+        //create the howl
+        if (type == "Audio") {
+            var sound = new Howl({
+                src: [src],
+                preload: true,
+            });
+            if (!howl_objects[num_cues]) {
+                howl_objects[num_cues] = [];
+            }
+            howl_objects[num_cues].push(sound);
+            howl_objects[num_cues][0].rate(rate);
+            howl_objects[num_cues][0].volume(volume);
+            howl_objects[num_cues][0].on('end', function(){
+                document.getElementById(cue_id).classList.remove("success");
+                if (selected_id == cue_id) {
+                    document.getElementById(num_cues).classList.add("info");
+                    document.getElementById("go").disabled = false;
+                    document.getElementById("go").style.display = "block";
+                    document.getElementById("fade").style.display = "none";
+                    document.getElementById("stop").disabled = true;
+                    document.getElementById("pause").disabled = true;
+                    document.getElementById("play").disabled = true;
+                }
+                var cell_id = cue_id + "_";
+                var status_id = cell_id + "status";
+                document.getElementById(status_id).innerHTML = "Ready"; 
+                var start_id = cell_id + "start";
+                var start_time = document.getElementById(start_id).innerHTML;
+                start_time = start_time.split(":");
+                var seconds = (60 * start_time[0]) + start_time[1];
+                sound.seek(seconds);
+            });
+            howl_objects[num_cues][0].on('loaderror', function(id, error){
+                var cell_id = cue_id + "_";
+                var status_id = cell_id + "status";
+                var duration_id = cell_id + "duration";
+                document.getElementById(status_id).innerHTML = "Error"; 
+                document.getElementById(duration_id).innerHTML = "00:00:00";
+            });
+            howl_objects[num_cues][0].on('load', function(){
+                var cell_id = cue_id + "_";
+                var status_id = cell_id + "status";
+                document.getElementById(status_id).innerHTML = "Ready";
+            });
+            var status = "Loading...";
         }
-        howl_objects[num_cues].push(sound);
-        howl_objects[num_cues][0].rate(rate);
-        howl_objects[num_cues][0].volume(volume);
-        howl_objects[num_cues][0].on('end', function(){
-            document.getElementById(cue_id).classList.remove("success");
-            if (selected_id == cue_id) {
-                document.getElementById(num_cues).classList.add("info");
-                document.getElementById("go").disabled = false;
-                document.getElementById("go").style.display = "block";
-                document.getElementById("fade").style.display = "none";
-                document.getElementById("stop").disabled = true;
-                document.getElementById("pause").disabled = true;
-                document.getElementById("play").disabled = true;
-            }
-            var cell_id = cue_id + "_";
-            var status_id = cell_id + "status";
-            document.getElementById(status_id).innerHTML = "Ready"; 
-            var start_id = cell_id + "start";
-            var start_time = document.getElementById(start_id).innerHTML;
-            start_time = start_time.split(":");
-            var seconds = (60 * start_time[0]) + start_time[1];
-            sound.seek(seconds);
-        });
-        howl_objects[num_cues][0].on('loaderror', function(id, error){
-            var cell_id = cue_id + "_";
-            var status_id = cell_id + "status";
-            var duration_id = cell_id + "duration";
-            document.getElementById(status_id).innerHTML = "Error"; 
-            document.getElementById(duration_id).innerHTML = "00:00:00";
-        });
-        howl_objects[num_cues][0].on('load', function(){
-            //add the time
-            var duration = sound.duration();
-            var minutes = Math.floor(duration / 60);
-            minutes = pad(minutes, 2);
-            var seconds = (duration - minutes * 60).toFixed(0);
-            seconds = pad(seconds, 2);
-            duration = minutes + ":" + seconds;
+        else {
             var cell_id = cue_id + "_";
             var duration_id = cell_id + "duration";
             var status_id = cell_id + "status";
-            if (end == "Calculating...") {
-                var end_id = cell_id + "end";
-                document.getElementById(end_id).innerHTML = duration;
-            }
-            document.getElementById(duration_id).innerHTML = duration;
-            document.getElementById(status_id).innerHTML = "Ready";
-        });
+            var status = "Ready";
+        }
+        var duration = loader.duration;
+        var minutes = Math.floor(duration / 60);
+        minutes = pad(minutes, 2);
+        var seconds = (duration - minutes * 60).toFixed(0);
+        seconds = pad(seconds, 2);
+        duration = minutes + ":" + seconds;
+        if (end == "Calculating...") {
+            end = duration;
+        }
         var cue = cue_list.insertRow(-1);
         cue.setAttribute("id", cue_id);
         cue.setAttribute("class", "cue");
+        cue.dataset.type = type;
+        cue.dataset.src = src;
         title = title.replace(/\\/g, "/");
         var n = title.lastIndexOf('/');
         var result = title.substring(n + 1);
         title = result.replace(/\.[^/.]+$/, "");
-        var status = "Loading...";
-        var duration = "Calculating...";
         var delete_id = cue_id + "_delete";
         var drag_id = cue_id + "_drag";
         var inline_controls = "<i data-toggle='tooltip' title='Delete cue' id='"+delete_id+"' class='fa fa-trash delete' aria-hidden='true'></i>&nbsp;&nbsp;<i id='"+drag_id+"' dragable='true' ondragstart='set_drag(event)' data-toggle='tooltip' title='Drag to reorder cue' class='fa fa-bars order' aria-hidden='true'></i>";
@@ -306,11 +340,8 @@ function add_cue(src, title, volume, rate, start, end) {
         if (start == "") {
             start = "00:00";
         }
-        if (end == "") {
-            end = "Calculating...";
-        }
         var remaining = "00:00";
-        var elements = [cue_num, title, duration, position, remaining, start, end, volume, rate, status, inline_controls];
+        var elements = [cue_num, title, type, duration, position, remaining, start, end, volume, rate, status, inline_controls];
         for (var y = 0; y < elements.length; ++y) {
             //add cell and create text
             var cell = cue.insertCell(y);
@@ -322,37 +353,40 @@ function add_cue(src, title, volume, rate, start, end) {
                 name = "title";
             }
             else if (y == 2) {
-                name = "duration";
+                name = "type";
             }
             else if (y == 3) {
-                name = "position";
+                name = "duration";
             }
             else if (y == 4) {
-                name = "remaining";
+                name = "position";
             }
             else if (y == 5) {
-                name = "start";
+                name = "remaining";
             }
             else if (y == 6) {
-                name = "end";
+                name = "start";
             }
             else if (y == 7) {
-                name = "volume";
+                name = "end";
             }
             else if (y == 8) {
-                name = "rate";
+                name = "volume";
             }
             else if (y == 9) {
-                name = "status";
+                name = "rate";
             }
             else if (y == 10) {
+                name = "status";
+            }
+            else if (y == 11) {
                 name = "inline_controls";
             }
             var cell_id = cue_id + "_" + name;
             cell.setAttribute("id", cell_id);
             cell.setAttribute("class", name);
             cell.innerHTML = elements[y];
-            if (y != 10) {
+            if (y != 11) {
                 document.getElementById(cell_id).addEventListener("click", function() {
                     select_cue(cue_id);
                 });
@@ -368,11 +402,14 @@ function add_cue(src, title, volume, rate, start, end) {
         document.getElementById(cue_id).addEventListener("dragover", function() {
             allow_drop(event);
         });
-    });
-    request.fail(function(jqXHR, textStatus, errorThrown) {
+    //});
+    }
+    loader.onerror = function() {
+    //request.fail(function(jqXHR, textStatus, errorThrown) {
         var error = "Unable to load file - " + src;
         show_alert(error);
-    });
+    //});
+    }
 }
 
 function renumber() {
@@ -387,101 +424,121 @@ function renumber() {
 
 //Select a Cue
 function select_cue(row_id) {
-    selected_id = row_id;
-    //pass in id of row to select it
-    if (selected_cue == "") {
-        console.log("Deletion Redirect");
-    }
-    else if (selected_cue !== undefined && selected_cue != "") {
-        selected_cue.classList.remove("cue_selected");
-        selected_cue.classList.remove("info");
-    }
-    selected_cue = document.getElementById(row_id);
-    selected_cue.classList.add("cue_selected");
-    selected_cue.classList.add("info");
-    selected_howler = howl_objects[row_id];
-    selected_howler = selected_howler[0];
-    var cue_rate = selected_howler.rate();
-    cue_volume = selected_howler.volume();
-    $('#volume-slider').slider('value', cue_volume);
-    cue_volume = (cue_volume * 100);
-    cue_volume = cue_volume + "%";
-    $( "#volume-slider-handle" ).text(cue_volume);
-    $('#rate-slider').slider('value', cue_rate);
-    var cue_rate = (cue_rate * 100);
-    cue_rate = cue_rate + "%";
-    $( "#rate-slider-handle" ).text(cue_rate);
-    //set up the seek slider 
-    $( "#seek-slider" ).slider( "destroy" );
-    document.getElementById("seek-slider").innerHTML = '<div id="seek-slider-handle" class="ui-slider-handle"></div>';
-    var seek = selected_howler.seek();
-    var minutes = Math.floor(seek / 60);
-    var seconds = (seek - minutes * 60).toFixed(0);
-    seek_sec = minutes + ":" + seconds;
-    $( "#seek-slider" ).slider({
-        min: 0,
-        max: selected_howler.duration(),
-        step: 1,
-        value: seek,
-        create: function() {
-            $( "#seek-slider-handle" ).text(seek_sec);
-        },
-        slide: function( event, ui ) {
-            setTimeout(function() {
-                var seek = $( "#seek-slider" ).slider("option", "value");
-                selected_howler.seek(seek);
-                var minutes = Math.floor(seek / 60);
-                var seconds = (seek - minutes * 60).toFixed(0);
-                seek_sec = minutes + ":" + seconds;
-                $( "#seek-slider-handle" ).text(seek_sec);
-            }, 30);    
+    console.log(row_id);
+    if (row_id != "") {
+        selected_id = row_id;
+        //pass in id of row to select it
+        if (selected_cue == "") {
+            console.log("Deletion Redirect");
         }
-    });
-    var cell_id = row_id + "_";
-    var start_id = cell_id + "start";
-    var start_time = document.getElementById(start_id).innerHTML;
-    start_time = start_time.split(":");
-    var seconds = (60 * parseFloat(start_time[0])) + parseFloat(start_time[1]);
-    var end_id = cell_id + "end";
-    var end_time = document.getElementById(end_id).innerHTML;
-    end_time = end_time.split(":");
-    //set up the start and end controls
-    document.getElementById("start_minute").value = start_time[0];
-    document.getElementById("start_second").value = start_time[1];
-    document.getElementById("end_minute").value = end_time[0];
-    document.getElementById("end_second").value = end_time[1];
-    //disable button if sound is already playing
-    var fire = document.getElementById("go");
-    var fade = document.getElementById("fade");
-    if (selected_howler.playing() == false) {
-        selected_howler.seek(seconds);
-        fire.disabled = false;
-        fire.style.display = "block";
-        fade.style.display = "none";
-        fade.disabled = true;
+        else if (selected_cue !== undefined && selected_cue != "") {
+            selected_cue.classList.remove("cue_selected");
+            selected_cue.classList.remove("info");
+        }
+        selected_cue = document.getElementById(row_id);
+        selected_cue.classList.add("cue_selected");
+        selected_cue.classList.add("info");
+        var cell_id = row_id + "_";
+        var fire = document.getElementById("go");
+        var fade = document.getElementById("fade");
+        if (selected_cue.dataset.type == "Audio") {
+            document.getElementById("rate").style.display = "block";
+            selected_howler = howl_objects[row_id];
+            selected_howler = selected_howler[0];
+            var cue_rate = selected_howler.rate();
+            cue_volume = selected_howler.volume();
+            $('#volume-slider').slider('value', cue_volume);
+            cue_volume = (cue_volume * 100);
+            cue_volume = cue_volume + "%";
+            $( "#volume-slider-handle" ).text(cue_volume);
+            $('#rate-slider').slider('value', cue_rate);
+            var cue_rate = (cue_rate * 100);
+            cue_rate = cue_rate + "%";
+            $( "#rate-slider-handle" ).text(cue_rate);
+            //set up the seek slider 
+            $( "#seek-slider" ).slider( "destroy" );
+            document.getElementById("seek-slider").innerHTML = '<div id="seek-slider-handle" class="ui-slider-handle"></div>';
+            var seek = selected_howler.seek();
+            var minutes = Math.floor(seek / 60);
+            var seconds = (seek - minutes * 60).toFixed(0);
+            seek_sec = minutes + ":" + seconds;
+            $( "#seek-slider" ).slider({
+                min: 0,
+                max: selected_howler.duration(),
+                step: 1,
+                value: seek,
+                create: function() {
+                    $( "#seek-slider-handle" ).text(seek_sec);
+                },
+                slide: function( event, ui ) {
+                    setTimeout(function() {
+                        var seek = $( "#seek-slider" ).slider("option", "value");
+                        selected_howler.seek(seek);
+                        var minutes = Math.floor(seek / 60);
+                        var seconds = (seek - minutes * 60).toFixed(0);
+                        seek_sec = minutes + ":" + seconds;
+                        $( "#seek-slider-handle" ).text(seek_sec);
+                    }, 30);    
+                }
+            });
+            var start_id = cell_id + "start";
+            var start_time = document.getElementById(start_id).innerHTML;
+            start_time = start_time.split(":");
+            var seconds = (60 * parseFloat(start_time[0])) + parseFloat(start_time[1]);
+            var end_id = cell_id + "end";
+            var end_time = document.getElementById(end_id).innerHTML;
+            end_time = end_time.split(":");
+            //set up the start and end controls
+            document.getElementById("start_minute").value = start_time[0];
+            document.getElementById("start_second").value = start_time[1];
+            document.getElementById("end_minute").value = end_time[0];
+            document.getElementById("end_second").value = end_time[1];
+            //disable button if sound is already playing
+            if (selected_howler.playing() == false) {
+                selected_howler.seek(seconds);
+                fire.disabled = false;
+                fire.style.display = "block";
+                fade.style.display = "none";
+                fade.disabled = true;
+            }
+            else if (selected_howler.playing() == true) {
+                fire.disabled = true;
+                fire.style.display = "none";
+                fade.style.display = "block";
+                fade.disabled = false;
+                document.getElementById("stop").disabled = false;
+                document.getElementById("pause").disabled = false;
+            }
+        }
+        else {
+            fire.disabled = false;
+            fire.style.display = "block";
+            document.getElementById("rate").style.display = "none";
+            selected_video_source = selected_cue.dataset.src;
+        }
+        //add row details to taskbar
+        var title_id = cell_id + "title";
+        document.getElementById("cue_name").value = document.getElementById(title_id).innerHTML;
     }
-    else if (selected_howler.playing() == true) {
-        fire.disabled = true;
-        fire.style.display = "none";
-        fade.style.display = "block";
-        fade.disabled = false;
-        document.getElementById("stop").disabled = false;
-        document.getElementById("pause").disabled = false;
-    }
-    //add row details to taskbar
-    var status_id = cell_id + "title";
-    document.getElementById("cue_name").value = document.getElementById(status_id).innerHTML;
 }
 
 //Play It
 function fire_cue() {
     var cue_id = selected_id;
+    var cue_to_fire = document.getElementById(cue_id);
     var cell_id = cue_id + "_";
-    var cue = howl_objects[cue_id][0];
-    cue.play();
-    document.getElementById(cue_id).classList.add("success");
-    document.getElementById(cue_id).classList.remove("info");
-    document.getElementById(cue_id).classList.remove("danger");
+    if (cue_to_fire.dataset.type == "Audio") {
+        var cue = howl_objects[cue_id][0];
+        cue.play();
+    }
+    else {
+        var external = remote.getGlobal('external');
+        console.log(external);
+        external.webContents.send('message', {command: "play", src: selected_video_source});
+    }
+    cue_to_fire.classList.add("success");
+    cue_to_fire.classList.remove("info");
+    cue_to_fire.classList.remove("danger");
     document.getElementById("go").disabled = true;
     document.getElementById("go").style.display = "none";
     document.getElementById("fade").style.display = "block";
@@ -493,6 +550,16 @@ function fire_cue() {
     document.getElementById(status_id).innerHTML = "Playing"; 
 }
 
+function reset_cue_buttons(cue_id) {
+    if (cue_id == selected_id) {
+        document.getElementById("go").disabled = false;
+        document.getElementById("go").style.display = "block";
+        document.getElementById("fade").style.display = "none";
+        document.getElementById("fade").disabled = false;
+        document.getElementById(cue_id).classList.add("info");
+    }
+}
+
 //Stop it
 function stop_cue() {
     var cue_id = selected_id;
@@ -500,13 +567,9 @@ function stop_cue() {
     cue.stop();
     document.getElementById(cue_id).classList.remove("success");
     document.getElementById(cue_id).classList.remove("danger");
-    document.getElementById(cue_id).classList.add("info");
-    document.getElementById("go").disabled = false;
-    document.getElementById("go").style.display = "block";
-    document.getElementById("fade").style.display = "none";
+    reset_cue_buttons(cue_id);
     document.getElementById("stop").disabled = true;
     document.getElementById("pause").disabled = true;
-    document.getElementById("play").disabled = true;
     var cell_id = cue_id + "_";
     var status_id = cell_id + "status";
     document.getElementById(status_id).innerHTML = "Ready"; 
@@ -531,51 +594,62 @@ function pause_cue() {
 
 //Fade It
 function fade_cue(cue_id) {
-    var cue = howl_objects[cue_id][0];
-    cue_volume = cue.volume();
+    var cue_to_fade = document.getElementById(cue_id);
     document.getElementById(cue_id).classList.remove("success");
     document.getElementById(cue_id).classList.add("warning");
-    document.getElementById("fade").disabled = true;
-    document.getElementById("stop").disabled = true;
-    document.getElementById("pause").disabled = true;
-    document.getElementById("play").disabled = true; 
-    cue.fade(cue_volume, 0, 5000);
+    if (cue_id == selected_id) {
+        document.getElementById("fade").disabled = true;
+        document.getElementById("stop").disabled = true;
+        document.getElementById("pause").disabled = true;
+        document.getElementById("play").disabled = true; 
+    }
     var cell_id = cue_id + "_";
     var status_id = cell_id + "status";
     document.getElementById(status_id).innerHTML = "Fading"; 
-    setTimeout(function() {
-        cue.volume(cue_volume);
-        cue.stop();
-        document.getElementById(cue_id).classList.remove("warning");
-        if (cue_id == selected_id) {
-            document.getElementById("go").disabled = false;
-            document.getElementById("go").style.display = "block";
-            document.getElementById("fade").style.display = "none";
-            document.getElementById("fade").disabled = false;
-            document.getElementById(cue_id).classList.add("info");
-        }
-        var cell_id = cue_id + "_";
-        var status_id = cell_id + "status";
-        document.getElementById(status_id).innerHTML = "Ready"; 
-    }, 5000);
+    if (cue_to_fade.dataset.type == "Audio") {
+        var cue = howl_objects[cue_id][0];
+        cue_volume = cue.volume();
+        cue.fade(cue_volume, 0, 5000);
+        setTimeout(function() {
+            cue.volume(cue_volume);
+            cue.stop();
+            document.getElementById(cue_id).classList.remove("warning");
+            reset_cue_buttons(cue_id);
+            var cell_id = cue_id + "_";
+            var status_id = cell_id + "status";
+            document.getElementById(status_id).innerHTML = "Ready"; 
+        }, 5000);
+    }
+    else {
+        var external = remote.getGlobal('external');
+        external.webContents.send('message', {command: "fade"});
+        setTimeout(function() {
+            document.getElementById(cue_id).classList.remove("warning");
+            reset_cue_buttons(cue_id);
+            var cell_id = cue_id + "_";
+            var status_id = cell_id + "status";
+            document.getElementById(status_id).innerHTML = "Ready"; 
+        }, 5000);
+    }
 }
 
 function delete_cue(cue_id) {
     if (cue_id != "") {
-        if (selected_cue !== undefined && selected_cue != "") {
-            selected_cue.classList.remove("cue_selected");
-            selected_cue.classList.remove("info");
-        }
         //find the id
+        if (document.getElementById(cue_id).dataset.type == "Audio") {
+            //delete the howler
+            howl_objects[cue_id][0].unload();
+            delete howl_objects[cue_id];
+            //select another cue
+            selected_howler = "";
+        }
+        else {
+            selected_video_source = "";
+        }
         document.getElementById(cue_id).remove();
-        //delete the howler
-        howl_objects[cue_id][0].unload();
-        delete howl_objects[cue_id];
-        //select another cue
-        selected_howler = "";
         selected_cue = "";
         selected_id = "";
-        var rowCount = $('#cue_list >tbody >tr').length;
+        var rowCount = document.getElementsByClassName("cue").length;
         if (rowCount > 0) {
             var new_cue_id = document.getElementsByClassName("cue")[0].id;
             select_cue(new_cue_id);
@@ -751,10 +825,17 @@ $(document).ready(function(){
     $('[data-toggle="tooltip"]').tooltip();   
 });
 
+//enable video output
+$("#enable_video").click(function(){
+    external_screen();
+});
+
 //disable and reenable modification
 $("#lock_mod").click(function(){
     locked = true;
     show_message("Show Modification Locked");
+    document.getElementById("lock_mod").style.display = "none";
+    document.getElementById("unlock_mod").style.display = "block";
     document.getElementById("locked").style.display = "inline";
     document.getElementById("unlocked").style.display = "none";
     var inputs = document.getElementsByTagName("input");
@@ -778,6 +859,8 @@ $("#lock_mod").click(function(){
 $("#unlock_mod").click(function(){
     locked = false;
     show_message("Show Modification Unlocked");
+    document.getElementById("lock_mod").style.display = "block";
+    document.getElementById("unlock_mod").style.display = "none";
     document.getElementById("locked").style.display = "none";
     document.getElementById("unlocked").style.display = "inline";
     var inputs = document.getElementsByTagName("input");

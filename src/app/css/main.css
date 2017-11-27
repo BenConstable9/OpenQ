@@ -39,6 +39,10 @@ input[type=number]::-webkit-outer-spin-button {
     display: none;
 }
 
+#unlock_mod {
+    display: none;
+}
+
 /* Start Screen */
 #start {
     text-align: center;
@@ -104,6 +108,10 @@ input[type=number]::-webkit-outer-spin-button {
 
 .cue_selected {
     color: black;
+}
+
+#cue_loader {
+    display: none;
 }
 
 /* Task Bar */

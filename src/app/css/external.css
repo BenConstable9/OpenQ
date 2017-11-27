@@ -1,0 +1,8 @@
+body {
+    background-color: black;
+    overflow: hidden;
+}
+#external_video {
+    width: 100%;
+    margin: auto;
+}
