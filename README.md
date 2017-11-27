@@ -30,7 +30,17 @@ v1.1.0 is our second stable release with the introduction of video cueing - whil
 
 - Scrubbing through tracks at high speed can cause issues with slider handle display text, does not effect operation.
 
-## Dependencies
+## Screenshots
+
+### Homepage
+
+![Starting Page](https://github.com/BenConstable9/OpenQ/blob/master/images/starting.PNG "Starting Page")
+
+### Controls
+
+![Controls](https://github.com/BenConstable9/OpenQ/blob/master/images/control.PNG "Controls")
+
+## Mentions
 
 OpenQ would not be possible without the great work of several projects including:
 
@@ -40,6 +50,8 @@ OpenQ would not be possible without the great work of several projects including
 - Howlerjs
 - Bootstrap
 - Font Awesome
+
+Thank you! Thanks to Charlie for the logo design and branding.
 
 ## License
 
