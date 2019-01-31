@@ -5,7 +5,7 @@ const electron = require('electron');
 const app = electron.app;
 const {ipcMain} = electron;
 const BrowserWindow = electron.BrowserWindow;
-global.mainWindow = null;
+global.controller = null;
 global.external = null;
 
 const path = require('path');
@@ -15,19 +15,19 @@ const log = require('electron-log');
 const {autoUpdater} = require("electron-updater");
 
 app.on('ready', function(){
-    mainWindow = new BrowserWindow({
+    controller = new BrowserWindow({
         width: 1080,
         height: 720,
         icon: path.join(__dirname, 'app/img/icon.ico')
     });
-    mainWindow.maximize();
-    mainWindow.loadURL(url.format({
+    controller.maximize();
+    controller.loadURL(url.format({
         pathname: path.join(__dirname, 'app/index.html'),
         protocol: 'file:',
         slashes: true
     }));
-    mainWindow.on('closed', function () {
-        mainWindow = null
+    controller.on('closed', function () {
+        controller = null
     });
 })
 
@@ -48,7 +48,7 @@ function ExternalScreen() {
             y: externalDisplay.bounds.y + 50,
             icon: path.join(__dirname, 'app/img/icon.ico'),
             //fullscreen: true
-            frame: false
+            //frame: false
         });
         external.maximize();
         external.loadURL(url.format({
@@ -60,8 +60,7 @@ function ExternalScreen() {
 }
 
 // Listen for async message from renderer process
-ipcMain.on('async', (event, arg) => {  
-    console.log(arg);
+ipcMain.on('async', (event, arg) => {
     if (arg == "ExternalScreen") {
         ExternalScreen();
     }
@@ -76,7 +75,7 @@ app.on('window-all-closed', function () {
 })
 
 app.on('activate', function () {
-    if (mainWindow === null) {
+    if (controller === null) {
         createWindow()
     }
 })

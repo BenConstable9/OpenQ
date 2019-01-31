@@ -10,17 +10,14 @@ const url = require('url');
 const path = require('path');
 var fs = require('fs');
 
-ipcRenderer.on ('message', (event, message) => { console.log (message); });
-
 // ** VARIABLES **
 var locked = false;
-var num_cues = 0;
-var selected_id;
+var cue_id = 1;
+var selected_id = "";
 var selected_cue;
-var cue_volume;
-var howl_objects = [];
-var selected_howler = "";
+var cues = [];
 var selected_video_source = "";
+var playing_video = "";
 var filepath = "";
 
 // ** FUNCTIONS **
@@ -38,28 +35,36 @@ function pad(n, width, z) {
 
 //Update Slider Times
 setInterval(function() {
-    if (selected_howler != "") {
-        var time = selected_howler.seek();
-        $('#seek-slider').slider('value', time);
-        var minutes = Math.floor(time / 60);
-        minutes = pad(minutes, 2);
-        var seconds = (time - minutes * 60).toFixed(0);
-        seconds = pad(seconds, 2);
-        seek_sec = minutes + ":" + seconds;
-        $( "#seek-slider-handle" ).text(seek_sec);
-    }
     //cycle through all the cues
-    var cues = document.getElementsByClassName("cue");
-    if (cues.length > 0) {
-        for (var i = 0; i < cues.length; i++) {
-            var cue_id = cues[i].id;
+    var cue_rows = document.getElementsByClassName("cue");
+    if (cue_rows.length > 0) {
+        for (var i = 0; i < cue_rows.length; i++) {
+            var cue_id = cue_rows[i].id;
             var cell_id = cue_id + "_";
             var end_id = cell_id + "end";
             var length_id = cell_id + "duration";
             var fadeout = document.getElementById(end_id).innerHTML;
             var length = document.getElementById(length_id).innerHTML;
-            if (cues[i].dataset.type == "Audio") {
-                var time = howl_objects[cue_id][0].seek();
+            if (cues[cue_id].type == "Audio" && cues[cue_id].audio_object != null) {
+                if (length == "-" || fadeout == "End") {
+                    var duration = cues[cue_id].audio_object.duration;
+                    if (isNaN(duration) == false) {
+                        var minutes = Math.floor(duration / 60);
+                        minutes = pad(minutes, 2);
+                        var seconds = (duration - minutes * 60).toFixed(0);
+                        seconds = pad(seconds, 2);
+                        length = minutes + ":" + seconds;
+                        document.getElementById(length_id).innerHTML = length;
+                        document.getElementById(end_id).innerHTML = length;
+                        document.getElementById("end_minute").value = minutes;
+                        document.getElementById("end_second").value = seconds;
+                        if (locked == false) {
+                            document.getElementById("end_minute").disabled = false;
+                            document.getElementById("end_second").disabled = false;
+                        }
+                    }
+                }
+                var time = cues[cue_id].audio_object.currentTime;
                 var position_id = cell_id + "position";
                 var remain_id = cell_id + "remaining";
                 var minutes = Math.floor(time / 60);
@@ -85,32 +90,37 @@ setInterval(function() {
                 }
                 document.getElementById(remain_id).innerHTML = remaining_formatted;
                 document.getElementById(position_id).innerHTML = seek_sec; 
+                if (cue_id == selected_id) {
+                    var duration = cues[cue_id].audio_object.duration;
+                    document.getElementById("elapsed").innerHTML = seek_sec;
+                    document.getElementById("remaining").innerHTML = remaining_formatted;
+                    document.getElementById("time-slider").value = time;
+                    document.getElementById("time-slider").max = duration;
+                    document.getElementById("remaining").innerHTML = "-" + remaining_formatted;
+                }
                 if (fadeout == seek_sec && seek_sec != "00:00" && length != seek_sec) {
                     fade_cue(cue_id);
                 }
+                if (cues[cue_id].faded == true && cue_id != selected_id && cues[cue_id].audio_object.paused == true) {
+                    //unload it to save memory
+                    delete cues[cue_id].audio_object;
+                    stopped_cue(cue_id);
+                    console.log("unloading");
+                }
+            }
+            else {
+                //todo fade out the video
             }
         }
     }
 }, 100);
 
 //Show The Alert
-function show_alert(message) {
-    if ($('#alert').length == 0) {
-        var alertHtml = "<div id='alert' class='alert alert-danger alert-dismissible' role='alert' style='display:none'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Warning - Critical Error!</strong> <span id='alertcontent'></span></div>"
-        $("#alertdiv").html(alertHtml);
-        $("#alert").show();
-    }
-    $("#alertcontent").append("<br>" + message);
-}
-
-//Show The Alert
 function show_message(message) {
-    if ($('#message').length == 0) {
-        var alertHtml = "<div id='message' class='alert alert-success alert-dismissible' role='alert' style='display:none'><button type='button' class='close' data-dismiss='alert' aria-label='Close'><span aria-hidden='true'>&times;</span></button><strong>Message</strong> <span id='messagecontent'></span></div>"
-        $("#messagediv").html(alertHtml);
-        $("#message").show();
-    }
-    $("#messagecontent").append("<br>" + message);
+    document.getElementById("message").innerHTML = "- " + message;
+    setTimeout(function() {
+        document.getElementById("message").innerHTML = "";
+    }, 30000);    
 }
 
 function write_file() {
@@ -120,22 +130,18 @@ function write_file() {
     file.name = name;
     file.cues = [];
     //get the cue content
-    var cues = document.getElementsByClassName("cue");
-    for (var i = 0; i < cues.length; i++) {
-        var row = cues[i];
+    var cue_rows = document.getElementsByClassName("cue");
+    for (var i = 0; i < cue_rows.length; i++) {
+        var row = cue_rows[i].id;
         var cue_json = {};
-        var s = row.dataset.src;
+        var s = cues[row].src;
         var n = s.indexOf('?');
         cue_json.src = s.substring(0, n != -1 ? n : s.length);
-        cue_json.type = row.dataset.type;
-        var title_id = row.id + "_title";
-        var start_id = row.id + "_start";
-        var end_id = row.id + "_end";
-        var rate_id = row.id + "_rate";
-        var volume_id = row.id + "_volume";
+        cue_json.type = cues[row].type;
+        var title_id = row + "_title";
+        var start_id = row + "_start";
+        var end_id = row + "_end";
         cue_json.title = document.getElementById(title_id).innerHTML;
-        cue_json.volume = (parseFloat(document.getElementById(volume_id).innerHTML.replace("%", ""))) / 100;
-        cue_json.rate = (parseFloat(document.getElementById(volume_id).innerHTML.replace("%", ""))) / 100;
         cue_json.start = document.getElementById(start_id).innerHTML;
         cue_json.end = document.getElementById(end_id).innerHTML;
         file.cues.push(cue_json);
@@ -143,7 +149,7 @@ function write_file() {
     var json = JSON.stringify(file);
     fs.writeFile(filepath, json, (err) => {
         if(err){
-            show_alert("An error ocurred creating the file: "+ err.message)
+            show_message("An error ocurred creating the file: "+ err.message)
         }     
         show_message("The file has been succesfully saved");
     });
@@ -155,14 +161,14 @@ function save_file() {
         //show the save dialog
         var filename = dialog.showSaveDialog({filters: [{name: '.json', extensions: ['json']}]});
         if (filename === undefined){
-            show_alert("You didn't save the file");
+            show_message("You didn't save the file");
         }
         else {
             filepath = filename;
             var name = filename.substring(filename.lastIndexOf('/')+1);
             name = filename.substring(filename.lastIndexOf('\\')+1);
             name = name.slice(0, -5);
-            $("#show").html(name);
+            document.getElementById("name").innerHTML = name;
             document.title = "OpenQ - " + name;
             write_file();
         }
@@ -227,8 +233,27 @@ function drop_row(ev) {
     renumber();
 }
 
+function stopping(cue_id) {
+    if (document.getElementById(cue_id).dataset.type == "Video") {
+        playing_video = "";
+    }
+    document.getElementById(cue_id).classList.remove("success");
+    if (selected_id == cue_id) {
+        document.getElementById(cue_id).classList.add("info");
+        document.getElementById("go").disabled = false;
+        document.getElementById("go").style.display = "block";
+        document.getElementById("fade").style.display = "none";
+        document.getElementById("stop").disabled = true;
+        document.getElementById("pause").disabled = true;
+        document.getElementById("play").disabled = true;
+    }
+    var cell_id = cue_id + "_";
+    var status_id = cell_id + "status";
+    document.getElementById(status_id).innerHTML = "Ready"; 
+}
+
 //Add New Cue
-function add_cue(src, title, volume, rate, start, end) {
+function add_cue(src, title, start, end) {
     //show the taskbar and the cue list
     document.getElementById("start").style.display = "none";
     document.getElementById("taskbar").style.display = "block";
@@ -237,114 +262,53 @@ function add_cue(src, title, volume, rate, start, end) {
     //now detect the cue type - audio or video
     var format = src.split('.').pop().toLowerCase();
     var videos = ["mp4", "ogg", "webm"];
-    console.log(format);
     if (videos.indexOf(format) >= 0) {
         var type = "Video";
     }
     else {
-        var type = "Audio"; 
+        var type = "Audio";
     }
-    //add a random string to prevent howler.js confusion
-    var random = Math.random();
-    src = src + "?" + random;
-    //var request = $.get(src);
-    var loader = document.getElementById("cue_loader");
-    loader.src = src;
-    loader.load();
-    //request.done(function(result) {
-    loader.onloadeddata  = function() {
-        //this adds the music to the list of songs (position is defaulted to last)
+    var request = new XMLHttpRequest();
+    request.open('GET', src, true);
+    // Decode asynchronously
+    request.onload = function() {
+        //the file exists
+        var cue = {
+            cue_id: cue_id,
+            src: src,
+            type: type,
+            playing: false,
+            faded: false,
+            audio_object: null
+        };
+        //push it to the main array
+        cues[cue_id] = cue;
+        
+        //add to the table
         var cue_list = document.getElementById("cue_list_body");
-        //make sure to add them with the class cue
-        num_cues += 1;
-        var cue_id = num_cues;
-        //create the howl
-        if (type == "Audio") {
-            var sound = new Howl({
-                src: [src],
-                preload: true,
-            });
-            if (!howl_objects[num_cues]) {
-                howl_objects[num_cues] = [];
-            }
-            howl_objects[num_cues].push(sound);
-            howl_objects[num_cues][0].rate(rate);
-            howl_objects[num_cues][0].volume(volume);
-            howl_objects[num_cues][0].on('end', function(){
-                document.getElementById(cue_id).classList.remove("success");
-                if (selected_id == cue_id) {
-                    document.getElementById(num_cues).classList.add("info");
-                    document.getElementById("go").disabled = false;
-                    document.getElementById("go").style.display = "block";
-                    document.getElementById("fade").style.display = "none";
-                    document.getElementById("stop").disabled = true;
-                    document.getElementById("pause").disabled = true;
-                    document.getElementById("play").disabled = true;
-                }
-                var cell_id = cue_id + "_";
-                var status_id = cell_id + "status";
-                document.getElementById(status_id).innerHTML = "Ready"; 
-                var start_id = cell_id + "start";
-                var start_time = document.getElementById(start_id).innerHTML;
-                start_time = start_time.split(":");
-                var seconds = (60 * start_time[0]) + start_time[1];
-                sound.seek(seconds);
-            });
-            howl_objects[num_cues][0].on('loaderror', function(id, error){
-                var cell_id = cue_id + "_";
-                var status_id = cell_id + "status";
-                var duration_id = cell_id + "duration";
-                document.getElementById(status_id).innerHTML = "Error"; 
-                document.getElementById(duration_id).innerHTML = "00:00:00";
-            });
-            howl_objects[num_cues][0].on('load', function(){
-                var cell_id = cue_id + "_";
-                var status_id = cell_id + "status";
-                document.getElementById(status_id).innerHTML = "Ready";
-            });
-            var status = "Loading...";
-        }
-        else {
-            var cell_id = cue_id + "_";
-            var duration_id = cell_id + "duration";
-            var status_id = cell_id + "status";
-            var status = "Ready";
-        }
-        var duration = loader.duration;
-        var minutes = Math.floor(duration / 60);
-        minutes = pad(minutes, 2);
-        var seconds = (duration - minutes * 60).toFixed(0);
-        seconds = pad(seconds, 2);
-        duration = minutes + ":" + seconds;
-        if (end == "Calculating...") {
-            end = duration;
-        }
-        var cue = cue_list.insertRow(-1);
-        cue.setAttribute("id", cue_id);
-        cue.setAttribute("class", "cue");
-        cue.dataset.type = type;
-        cue.dataset.src = src;
+        var cue_row = cue_list.insertRow(-1);
+        cue_row.setAttribute("id", cue_id);
+        cue_row.setAttribute("class", "cue");
+        //format duration
+        var duration = "-";
         title = title.replace(/\\/g, "/");
         var n = title.lastIndexOf('/');
         var result = title.substring(n + 1);
         title = result.replace(/\.[^/.]+$/, "");
         var delete_id = cue_id + "_delete";
         var drag_id = cue_id + "_drag";
-        var inline_controls = "<i data-toggle='tooltip' title='Delete cue' id='"+delete_id+"' class='fa fa-trash delete' aria-hidden='true'></i>&nbsp;&nbsp;<i id='"+drag_id+"' dragable='true' ondragstart='set_drag(event)' data-toggle='tooltip' title='Drag to reorder cue' class='fa fa-bars order' aria-hidden='true'></i>";
+        var inline_controls = "<i title='Delete cue' id='"+delete_id+"' class='fa fa-trash delete' aria-hidden='true'></i>&nbsp;&nbsp;<i id='"+drag_id+"' dragable='true' ondragstart='set_drag(event)' title='Drag to reorder cue' class='fa fa-bars order' aria-hidden='true'></i>";
         var position = "00:00";
-        volume = (volume * 100);
-        volume = volume + "%";
-        rate = (rate * 100);
-        rate = rate + "%";
+        //todo replace this
         var cue_num = $('#cue_list >tbody >tr').length;
         if (start == "") {
             start = "00:00";
         }
         var remaining = "00:00";
-        var elements = [cue_num, title, type, duration, position, remaining, start, end, volume, rate, status, inline_controls];
+        var elements = [cue_num, title, type, duration, position, remaining, start, end, "Unloaded", inline_controls];
         for (var y = 0; y < elements.length; ++y) {
             //add cell and create text
-            var cell = cue.insertCell(y);
+            var cell = cue_row.insertCell(y);
             var name = "";
             if (y == 0) {
                 name = "num";
@@ -371,30 +335,24 @@ function add_cue(src, title, volume, rate, start, end) {
                 name = "end";
             }
             else if (y == 8) {
-                name = "volume";
-            }
-            else if (y == 9) {
-                name = "rate";
-            }
-            else if (y == 10) {
                 name = "status";
             }
-            else if (y == 11) {
+            else if (y == 9) {
                 name = "inline_controls";
             }
             var cell_id = cue_id + "_" + name;
             cell.setAttribute("id", cell_id);
             cell.setAttribute("class", name);
             cell.innerHTML = elements[y];
-            if (y != 11) {
+            if (y != 9) {
                 document.getElementById(cell_id).addEventListener("click", function() {
-                    select_cue(cue_id);
+                    select_cue(this.parentNode.id);
                 });
             }
         }
         //add the event listeners
         document.getElementById(delete_id).addEventListener("click", function() {
-            delete_confirm(cue_id);
+            delete_confirm(this.parentNode.parentNode.id);
         });
         document.getElementById(cue_id).addEventListener("drop", function() {
             drop_row(event);
@@ -402,14 +360,12 @@ function add_cue(src, title, volume, rate, start, end) {
         document.getElementById(cue_id).addEventListener("dragover", function() {
             allow_drop(event);
         });
-    //});
+        
+        //increase the cue number
+        cue_id += 1;
     }
-    loader.onerror = function() {
-    //request.fail(function(jqXHR, textStatus, errorThrown) {
-        var error = "Unable to load file - " + src;
-        show_alert(error);
-    //});
-    }
+    //todo handle error
+    request.send();
 }
 
 function renumber() {
@@ -422,123 +378,111 @@ function renumber() {
     }
 }
 
+// Set up the controls for the user
+function set_controls(row_id) {
+    var fire = document.getElementById("go");
+    var fade = document.getElementById("fade");
+    var cue_object = cues[row_id];
+    
+    //disable button if sound is already playing
+    if(cue_object.playing == true) {
+        fire.disabled = true;
+        fire.style.display = "none";
+        fade.style.display = "block";
+        fade.disabled = false;
+        document.getElementById("stop").disabled = false;
+        document.getElementById("pause").disabled = false;
+    } else {
+        fire.disabled = false;
+        fire.style.display = "block";
+        fade.style.display = "none";
+        fade.disabled = true;
+    }
+    
+    //set up start and end inputs
+    var cell_id = row_id + "_";
+    var status_id = cell_id + "status";
+    document.getElementById(status_id).innerHTML = "Ready";
+    var start_id = cell_id + "start";
+    var start_time = document.getElementById(start_id).innerHTML;
+    start_time = start_time.split(":");
+    var seconds = (60 * parseFloat(start_time[0])) + parseFloat(start_time[1]);
+    document.getElementById("start_minute").value = start_time[0];
+    document.getElementById("start_second").value = start_time[1];
+    var end_id = cell_id + "end";
+    var end_time = document.getElementById(end_id).innerHTML;
+    
+    //reset the slider
+    document.getElementById("time-slider").value = 0;
+    
+    if (end_time != "End") {
+        end_time = end_time.split(":");
+        //set up the start and end controls
+        document.getElementById("end_minute").value = end_time[0];
+        document.getElementById("end_second").value = end_time[1];
+        if (locked == false) {
+            document.getElementById("end_minute").disabled = false;
+            document.getElementById("end_second").disabled = false;
+        }
+    } else {
+        if (locked == false) {
+            document.getElementById("end_minute").disabled = true;
+            document.getElementById("end_second").disabled = true;
+        }
+    }
+    //add row details to taskbar
+    var title_id = cell_id + "title";
+    document.getElementById("cue_name").value = document.getElementById(title_id).innerHTML;
+}
+
 //Select a Cue
 function select_cue(row_id) {
-    console.log(row_id);
     if (row_id != "") {
-        selected_id = row_id;
+        //get the object
         //pass in id of row to select it
-        if (selected_cue == "") {
-            console.log("Deletion Redirect");
-        }
-        else if (selected_cue !== undefined && selected_cue != "") {
+        if (selected_cue !== undefined && selected_cue != "") {
             selected_cue.classList.remove("cue_selected");
             selected_cue.classList.remove("info");
         }
+        
         selected_cue = document.getElementById(row_id);
+        selected_id = row_id;
         selected_cue.classList.add("cue_selected");
         selected_cue.classList.add("info");
-        var cell_id = row_id + "_";
-        var fire = document.getElementById("go");
-        var fade = document.getElementById("fade");
-        if (selected_cue.dataset.type == "Audio") {
-            document.getElementById("rate").style.display = "block";
-            selected_howler = howl_objects[row_id];
-            selected_howler = selected_howler[0];
-            var cue_rate = selected_howler.rate();
-            cue_volume = selected_howler.volume();
-            $('#volume-slider').slider('value', cue_volume);
-            cue_volume = (cue_volume * 100);
-            cue_volume = cue_volume + "%";
-            $( "#volume-slider-handle" ).text(cue_volume);
-            $('#rate-slider').slider('value', cue_rate);
-            var cue_rate = (cue_rate * 100);
-            cue_rate = cue_rate + "%";
-            $( "#rate-slider-handle" ).text(cue_rate);
-            //set up the seek slider 
-            $( "#seek-slider" ).slider( "destroy" );
-            document.getElementById("seek-slider").innerHTML = '<div id="seek-slider-handle" class="ui-slider-handle"></div>';
-            var seek = selected_howler.seek();
-            var minutes = Math.floor(seek / 60);
-            var seconds = (seek - minutes * 60).toFixed(0);
-            seek_sec = minutes + ":" + seconds;
-            $( "#seek-slider" ).slider({
-                min: 0,
-                max: selected_howler.duration(),
-                step: 1,
-                value: seek,
-                create: function() {
-                    $( "#seek-slider-handle" ).text(seek_sec);
-                },
-                slide: function( event, ui ) {
-                    setTimeout(function() {
-                        var seek = $( "#seek-slider" ).slider("option", "value");
-                        selected_howler.seek(seek);
-                        var minutes = Math.floor(seek / 60);
-                        var seconds = (seek - minutes * 60).toFixed(0);
-                        seek_sec = minutes + ":" + seconds;
-                        $( "#seek-slider-handle" ).text(seek_sec);
-                    }, 30);    
-                }
-            });
-            var start_id = cell_id + "start";
-            var start_time = document.getElementById(start_id).innerHTML;
-            start_time = start_time.split(":");
-            var seconds = (60 * parseFloat(start_time[0])) + parseFloat(start_time[1]);
-            var end_id = cell_id + "end";
-            var end_time = document.getElementById(end_id).innerHTML;
-            end_time = end_time.split(":");
-            //set up the start and end controls
-            document.getElementById("start_minute").value = start_time[0];
-            document.getElementById("start_second").value = start_time[1];
-            document.getElementById("end_minute").value = end_time[0];
-            document.getElementById("end_second").value = end_time[1];
-            //disable button if sound is already playing
-            if (selected_howler.playing() == false) {
-                selected_howler.seek(seconds);
-                fire.disabled = false;
-                fire.style.display = "block";
-                fade.style.display = "none";
-                fade.disabled = true;
-            }
-            else if (selected_howler.playing() == true) {
-                fire.disabled = true;
-                fire.style.display = "none";
-                fade.style.display = "block";
-                fade.disabled = false;
-                document.getElementById("stop").disabled = false;
-                document.getElementById("pause").disabled = false;
+
+        var cue_object = cues[row_id];
+        
+        if (cue_object.type == "Audio") {
+            //see if already has an object
+            if (cue_object.audio_object == null) {
+                var source = new Audio();
+                source.src = cue_object.src;
+                cues[row_id]["audio_object"] = source;
+                set_controls(row_id)
+            } else {
+                set_controls(row_id);
             }
         }
-        else {
-            fire.disabled = false;
-            fire.style.display = "block";
-            document.getElementById("rate").style.display = "none";
-            selected_video_source = selected_cue.dataset.src;
-        }
-        //add row details to taskbar
-        var title_id = cell_id + "title";
-        document.getElementById("cue_name").value = document.getElementById(title_id).innerHTML;
     }
 }
 
 //Play It
 function fire_cue() {
     var cue_id = selected_id;
-    var cue_to_fire = document.getElementById(cue_id);
+    var cue_object = cues[cue_id];
     var cell_id = cue_id + "_";
-    if (cue_to_fire.dataset.type == "Audio") {
-        var cue = howl_objects[cue_id][0];
-        cue.play();
-    }
-    else {
+    if (cue_object.type == "Audio") {
+        cue_object.audio_object.play();
+    } else {
+        var volume_id = cell_id + "volume";
+        cue_volume = (parseFloat(document.getElementById(volume_id).innerHTML.replace("%", ""))) / 100;
         var external = remote.getGlobal('external');
-        console.log(external);
-        external.webContents.send('message', {command: "play", src: selected_video_source});
+        external.webContents.send('message', {command: "play", src: selected_video_source, cue_id: cue_id, volume: cue_volume});
+        playing_video = cue_id;
     }
-    cue_to_fire.classList.add("success");
-    cue_to_fire.classList.remove("info");
-    cue_to_fire.classList.remove("danger");
+    cues[cue_id].playing = true;
+    selected_cue.classList.add("success");
+    selected_cue.classList.remove("danger");
     document.getElementById("go").disabled = true;
     document.getElementById("go").style.display = "none";
     document.getElementById("fade").style.display = "block";
@@ -550,36 +494,56 @@ function fire_cue() {
     document.getElementById(status_id).innerHTML = "Playing"; 
 }
 
+//reset buttons back to the normal state
 function reset_cue_buttons(cue_id) {
+    document.getElementById("go").disabled = false;
+    document.getElementById("go").style.display = "block";
+    document.getElementById("fade").style.display = "none";
+    document.getElementById("fade").disabled = false;
+    document.getElementById(cue_id).classList.add("info");
+}
+
+//Handle the event once the cue has stopped
+function stopped_cue(cue_id) {
+    var cue_object = cues[cue_id];
+    cues[cue_id].playing = false;
+    selected_cue.classList.remove("success");
+    selected_cue.classList.remove("danger");
+    var cell_id = cue_id + "_";
+    var status_id = cell_id + "status";
     if (cue_id == selected_id) {
-        document.getElementById("go").disabled = false;
-        document.getElementById("go").style.display = "block";
-        document.getElementById("fade").style.display = "none";
-        document.getElementById("fade").disabled = false;
-        document.getElementById(cue_id).classList.add("info");
+        reset_cue_buttons(cue_id);
+        document.getElementById("stop").disabled = true;
+        document.getElementById("pause").disabled = true;
+        document.getElementById(status_id).innerHTML = "Ready";
+    } else {
+        document.getElementById(status_id).innerHTML = "Unloaded";
     }
 }
 
 //Stop it
 function stop_cue() {
     var cue_id = selected_id;
-    var cue = howl_objects[cue_id][0];
-    cue.stop();
-    document.getElementById(cue_id).classList.remove("success");
-    document.getElementById(cue_id).classList.remove("danger");
-    reset_cue_buttons(cue_id);
-    document.getElementById("stop").disabled = true;
-    document.getElementById("pause").disabled = true;
-    var cell_id = cue_id + "_";
-    var status_id = cell_id + "status";
-    document.getElementById(status_id).innerHTML = "Ready"; 
+    var cue_object = cues[cue_id];
+    if (cue_object.type == "Audio") {
+        cue_object.audio_object.pause();
+        cue_object.audio_object.currentTime = 0;
+    } else {
+        //todo stop video
+    }
+    stopped_cue(cue_id);
 }
 
 //Pause It
 function pause_cue() {
     var cue_id = selected_id;
-    var cue = howl_objects[cue_id][0];
-    cue.pause();
+    var cue_object = cues[cue_id];
+    cues[cue_id].playing = false;
+    if (cue_object.type == "Audio") {
+        cue_object.audio_object.pause();
+    } else {
+        //todo stop video
+    }
     document.getElementById(cue_id).classList.remove("success");
     document.getElementById(cue_id).classList.add("danger");
     document.getElementById("go").disabled = true;
@@ -594,54 +558,46 @@ function pause_cue() {
 
 //Fade It
 function fade_cue(cue_id) {
+    document.getElementById("fade").disabled = true;
     var cue_to_fade = document.getElementById(cue_id);
-    document.getElementById(cue_id).classList.remove("success");
-    document.getElementById(cue_id).classList.add("warning");
-    if (cue_id == selected_id) {
-        document.getElementById("fade").disabled = true;
-        document.getElementById("stop").disabled = true;
-        document.getElementById("pause").disabled = true;
-        document.getElementById("play").disabled = true; 
-    }
+    cue_to_fade.classList.remove("success");
+    cue_to_fade.classList.add("warning");
     var cell_id = cue_id + "_";
     var status_id = cell_id + "status";
-    document.getElementById(status_id).innerHTML = "Fading"; 
-    if (cue_to_fade.dataset.type == "Audio") {
-        var cue = howl_objects[cue_id][0];
-        cue_volume = cue.volume();
-        cue.fade(cue_volume, 0, 5000);
-        setTimeout(function() {
-            cue.volume(cue_volume);
-            cue.stop();
-            document.getElementById(cue_id).classList.remove("warning");
-            reset_cue_buttons(cue_id);
-            var cell_id = cue_id + "_";
-            var status_id = cell_id + "status";
-            document.getElementById(status_id).innerHTML = "Ready"; 
-        }, 5000);
+    document.getElementById(status_id).innerHTML = "Fading";
+    if (cues[cue_id].type == "Audio") {
+        var cue_object = cues[cue_id];
+        var fade_audio = setInterval(function () {
+
+            // Only fade if not at zero already
+            if (cue_object.audio_object.volume != 0.0) {
+                cue_object.audio_object.volume -= 0.02;
+            }
+            // When volume at zero stop all the intervalling
+            if (cue_object.audio_object.volume <= 0.02) {
+                clearInterval(fade_audio);
+                cue_object.audio_object.pause();
+                cue_object.audio_object.currentTime = 0;
+                cue_object.audio_object.volume = 1;
+                cues[cue_id].faded = true;
+            }
+        }, 50);
     }
     else {
         var external = remote.getGlobal('external');
         external.webContents.send('message', {command: "fade"});
-        setTimeout(function() {
-            document.getElementById(cue_id).classList.remove("warning");
-            reset_cue_buttons(cue_id);
-            var cell_id = cue_id + "_";
-            var status_id = cell_id + "status";
-            document.getElementById(status_id).innerHTML = "Ready"; 
-        }, 5000);
     }
+    setTimeout(function() {
+        cue_to_fade.classList.remove("warning");
+    }, 5000);
 }
 
 function delete_cue(cue_id) {
     if (cue_id != "") {
         //find the id
-        if (document.getElementById(cue_id).dataset.type == "Audio") {
-            //delete the howler
-            howl_objects[cue_id][0].unload();
-            delete howl_objects[cue_id];
-            //select another cue
-            selected_howler = "";
+        if (cues[cue_id].type == "Audio") {
+            //delete the audio
+            delete cues[cue_id];
         }
         else {
             selected_video_source = "";
@@ -655,8 +611,7 @@ function delete_cue(cue_id) {
             select_cue(new_cue_id);
             renumber();
             show_message("Cue deleted successfully.");
-        }
-        else {
+        } else {
             //hide the taskbar and the cue list
             document.getElementById("start").style.display = "block";
             document.getElementById("taskbar").style.display = "none";
@@ -669,6 +624,11 @@ function delete_confirm(cue_id) {
     if (confirm("Are you sure you want to delete this cue?") == true) {
         delete_cue(cue_id);
     }
+}
+
+function update_time() {
+    var time = document.getElementById("time-slider").value;
+    cues[selected_id].audio_object.currentTime = time;
 }
 
 function update_start() {
@@ -689,200 +649,51 @@ function update_end() {
     document.getElementById(end_id).innerHTML = end_minute + ":" + end_second;
 }
 
-// ** SLIDERS LISTENERS **
-
-//Set Up seek slider - placeholder
-var handle = $( "#seek-slider-handle" );
-$( "#seek-slider" ).slider({
-    min: 0,
-    max: 0,
-    step: 1,
-    create: function() {
-        handle.text("00:00");
-    }
-});
-
-//set up volume slider
-$( "#volume-slider" ).slider({
-    min: 0,
-    max: 1,
-    step: 0.1,
-    value: 1,
-    create: function() {
-        $( "#volume-slider-handle" ).text("100%");
-    },
-    slide: function( event, ui ) {
-        var cue_id = selected_id;
-        var cell_id = cue_id + "_";
-        var volume_id = cell_id + "volume";
-        setTimeout(function() {
-            var new_volume = $( "#volume-slider" ).slider("option", "value");
-            if (selected_howler != "") {
-                selected_howler.volume(new_volume);
-            }
-            var new_volume = (new_volume * 100);
-            new_volume = new_volume + "%";
-            $( "#volume-slider-handle" ).text(new_volume);
-            document.getElementById(volume_id).innerHTML = new_volume; 
-        }, 30);
-    }
-});
-
-//set up rate slider
-$( "#rate-slider" ).slider({
-    min: 0.5,
-    max: 4.0,
-    step: 0.1,
-    value: 1,
-    create: function() {
-        $( "#rate-slider-handle" ).text("100%");
-    },
-    slide: function( event, ui ) {
-        var cue_id = selected_id;
-        var cell_id = cue_id + "_";
-        var rate_id = cell_id + "rate";
-        setTimeout(function() {
-            var new_rate = $( "#rate-slider" ).slider("option", "value");
-            console.log(new_rate);
-            if (selected_howler != "") {
-                selected_howler.rate(new_rate);
-            }
-            var new_rate = (new_rate * 100).toFixed(0);
-            console.log(new_rate);
-            new_rate = new_rate + "%";
-            $( "#rate-slider-handle" ).text(new_rate);
-            document.getElementById(rate_id).innerHTML = new_rate;
-        }, 30);
-    }
-});
-
-// ** EVENT LISTENERS **
-
-//detect change in name
-$('#cue_name').bind('input', function() {
-    var name_id = selected_id + "_title";
-    document.getElementById(name_id).innerHTML = $('#cue_name').val();
-});
-
-//detect changes in time
-$('#start_minute').bind('input', function() {
-    update_start();
-});
-
-$('#start_second').bind('input', function() {
-    update_start();
-});
-
-$('#end_minute').bind('input', function() {
-    update_end();
-});
-
-$('#end_second').bind('input', function() {
-    update_end();
-});
-
-//detect enter press
-$(document).keyup(function(evt) {
-    if (evt.keyCode == 13) {
-        enter = false;
-    }
-}).keydown(function(evt) {
-    if (evt.keyCode == 13) {
-        enter = true;
-        if (selected_howler.playing() == false) {
-            fire_cue();
-        }
-        else {
-            fade_cue(selected_id);
-        }
-    }
-});
-
-//Button Event Listeners
-
-$("#go").click(function(){
-    fire_cue();
-});
-
-$("#fade").click(function(){
-    fade_cue(selected_id);
-});
-
-$("#pause").click(function(){
-    pause_cue();
-});
-
-$("#stop").click(function(){
-    stop_cue();
-});
-
-$("#play").click(function(){
-    fire_cue();
-});
-
-//setup tooltips
-$(document).ready(function(){
-    $('[data-toggle="tooltip"]').tooltip();   
-});
-
-//enable video output
-$("#enable_video").click(function(){
-    external_screen();
-});
-
-//disable and reenable modification
-$("#lock_mod").click(function(){
-    locked = true;
-    show_message("Show Modification Locked");
-    document.getElementById("lock_mod").style.display = "none";
-    document.getElementById("unlock_mod").style.display = "block";
-    document.getElementById("locked").style.display = "inline";
-    document.getElementById("unlocked").style.display = "none";
-    var inputs = document.getElementsByTagName("input");
-    for (var i = 0; i < inputs.length; i++) {
-        if (inputs[i].type === 'text' || inputs[i].type === 'number' || inputs[i].type === 'file') {
-            inputs[i].disabled = true;
-        }
-    }
-    //disable the dragability
+function toggle_lock() {
+    show_message("Show Modification Toggled");
     var drags = document.getElementsByClassName("order");
     var deletes = document.getElementsByClassName("delete");
-    if (drags.length > 0) {
-        for (var i = 0; i < drags.length; i++) {
-            drags[i].style.display = "none";
-            deletes[i].style.display = "none";
-        }
-    }
-});
-
-//disable and reenable modification
-$("#unlock_mod").click(function(){
-    locked = false;
-    show_message("Show Modification Unlocked");
-    document.getElementById("lock_mod").style.display = "block";
-    document.getElementById("unlock_mod").style.display = "none";
-    document.getElementById("locked").style.display = "none";
-    document.getElementById("unlocked").style.display = "inline";
     var inputs = document.getElementsByTagName("input");
-    for (var i = 0; i < inputs.length; i++) {
-        console.log(inputs[i].type);
-        if (inputs[i].type === 'text' || inputs[i].type === 'number' || inputs[i].type === 'file') {
-            inputs[i].disabled = false;
+    if (locked == true) {
+        locked = false;
+        document.getElementById("toggle_lock").innerHTML = "Disable Modification";
+        document.getElementById("locked").style.display = "none";
+        document.getElementById("unlocked").style.display = "inline";
+        for (var i = 0; i < inputs.length; i++) {
+            if (inputs[i].type === 'text' || inputs[i].type === 'number' || inputs[i].type === 'file') {
+                inputs[i].disabled = false;
+            }
+        }
+        //show the dragability
+        if (drags.length > 0) {
+            for (var i = 0; i < drags.length; i++) {
+                drags[i].style.display = "inline";
+                deletes[i].style.display = "inline";
+            }
+        }
+    } else {
+        //locking
+        locked = true;
+        document.getElementById("toggle_lock").innerHTML = "Enable Modification";
+        document.getElementById("locked").style.display = "inline";
+        document.getElementById("unlocked").style.display = "none";
+        for (var i = 0; i < inputs.length; i++) {
+            if (inputs[i].type === 'text' || inputs[i].type === 'number' || inputs[i].type === 'file') {
+                inputs[i].disabled = true;
+            }
+        }
+        //disable the dragability
+        if (drags.length > 0) {
+            for (var i = 0; i < drags.length; i++) {
+                drags[i].style.display = "none";
+                deletes[i].style.display = "none";
+            }
         }
     }
-    //show the dragability
-    var drags = document.getElementsByClassName("order");
-    var deletes = document.getElementsByClassName("delete");
-    if (drags.length > 0) {
-        for (var i = 0; i < drags.length; i++) {
-            drags[i].style.display = "inline";
-            deletes[i].style.display = "inline";
-        }
-    }
-});
+}
 
-//empty the cue list
-$("#empty_list").click(function(){
+//Empty the list Cue Import
+function empty_list() {
     if (locked == false) {
         //loop through the cues    
         var cues = document.getElementsByClassName("cue");
@@ -895,46 +706,43 @@ $("#empty_list").click(function(){
         }
     }
     else {
-        show_alert("Show modificiation is disabled - to enable visit the 'More' tab.")
+        show_message("Show modificiation is disabled.")
     }
-});
+}
 
-// Open file selector on div click
-$("#cue_import_button").click(function(){
+// Trigger the Cue Import
+function cue_import_trigger() {
     if (locked == false) {
-        $("#cue_import_file").click();
+        document.getElementById("cue_import_file").click();
     }
     else {
-        show_alert("Show modificiation is disabled - to enable visit the 'More' tab.")
+        show_message("Show modificiation is disabled.")
     }
-});
+}
 
-$("#start_cue_import_button").click(function(){
-    $("#cue_import_file").click();
-});
-
-$("#save_show_button").click(function(){
-    save_file();
-});
-
-$("#show_import_button").click(function(){
+// Trigger the Show Import
+function show_import_trigger() {
     if (locked == false) {
-        $("#show_import_file").click();
+        document.getElementById("show_import_file").click();
     }
     else {
-        show_alert("Show modificiation is disabled - to enable visit the 'More' tab.")
+        show_message("Show modificiation is disabled.")
     }
-});
+}
 
-$("#start_show_import_button").click(function(){
-    $("#show_import_file").click();
+// ** EVENT LISTENERS **
+
+//detect change in name
+$('#cue_name').bind('input', function() {
+    var name_id = selected_id + "_title";
+    document.getElementById(name_id).innerHTML = document.getElementById("cue_name").value;
 });
 
 // file selected
 $("#cue_import_file").change(function(){
     var cue = $('#cue_import_file')[0].files[0];
     $('#cue_import_file').val("");
-    add_cue(cue.path, cue.path, 1, 1, "", "");
+    add_cue(cue.path, cue.path, "", "End");
 });
 
 // file selected
@@ -951,7 +759,7 @@ $("#show_import_file").change(function(){
         success: function (json) {
             // Process data here
             if (!json.openq) {
-                show_alert("Invalid File - Not a Q Show Library");
+                show_message("Invalid File - Not a Q Show Library");
             }
             $("#show").html(json.name);
             document.title = "OpenQ - " + json.name;
@@ -962,13 +770,48 @@ $("#show_import_file").change(function(){
                     cue.title = cue.src;
                 }
                 setTimeout(function() {
-                    add_cue(cue.src, cue.title, cue.volume, cue.rate, cue.start, cue.end);
+                    add_cue(cue.src, cue.title, cue.start, cue.end);
                 }, x);
                 x += 300;
             });
         },
         error: function() {
-            show_alert("Unable to find show file");
+            show_message("Unable to find show file");
         }
     });
+});
+
+//Button Event Listeners
+
+//Import Buttons
+document.getElementById("cue_import_button").addEventListener("click", cue_import_trigger);
+document.getElementById("start_cue_import_button").addEventListener("click", function() {document.getElementById("cue_import_file").click();});
+
+document.getElementById("show_import_button").addEventListener("click", show_import_trigger);
+document.getElementById("start_show_import_button").addEventListener("click", function() {document.getElementById("show_import_file").click();});
+
+//Menu Buttons
+document.getElementById("empty_list").addEventListener("click", empty_list);
+//document.getElementById("enable_video").addEventListener("click", external_screen);
+document.getElementById("save_show_button").addEventListener("click", save_file);
+document.getElementById("toggle_lock").addEventListener("click", toggle_lock);
+
+//Control Buttons
+document.getElementById("go").addEventListener("click", fire_cue);
+document.getElementById("fade").addEventListener("click", function() {fade_cue(selected_id);});
+document.getElementById("pause").addEventListener("click", pause_cue);
+document.getElementById("stop").addEventListener("click", stop_cue);
+document.getElementById("play").addEventListener("click", fire_cue);
+document.getElementById("time-slider").addEventListener("input", update_time);
+document.getElementById("start_minute").addEventListener("input", update_start);
+document.getElementById("start_second").addEventListener("input", update_start);
+document.getElementById("end_minute").addEventListener("input", update_end);
+document.getElementById("end_second").addEventListener("input", update_end);
+
+//Listen for IPC Messages
+//Listen For Message
+ipcRenderer.on ('message', (event, message) => {
+    if (message.data == "stopping") {
+        stopping(message.cue_id);
+    }
 });

@@ -32,7 +32,48 @@ input[type=number]::-webkit-outer-spin-button {
 /* Header */
 #header {
     top: 0px;
-    margin-bottom: 0px;
+    position: sticky;
+}
+
+.bar {
+    width: 100%;
+    box-shadow: 0 4px 5px 1px rgba(0, 0, 0, 0.12), 0 2px 9px 1px rgba(0, 0, 0, 0.12), 0 4px 2px -2px rgba(0, 0, 0, 0.2), 0 2px 9px 1px rgba(0, 0, 0, 0.12);
+    z-index: 100;
+    padding: 10px;
+    height: 5%;
+    background-color: #ff8c3e;
+    color: #fff;
+}
+
+.bar .title {
+    position: absolute;
+    left: 20px;
+    font-weight: 500;
+    font-size: 22px;
+}
+#items {
+    position: absolute;
+    padding: 5px;
+    right: 20px;
+}
+
+#items li {
+    display: inline;
+    margin: 0 0 0 10px;
+}
+
+#items li a, #items li a:hover {
+    color: #fff;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+#items li a:hover {
+    font-weight: 600;
+}
+
+#sub_title {
+    font-size: 16px;
 }
 
 #locked {
@@ -49,44 +90,62 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 #logo {
-    width: 40%;
+    height: 40%;
+}
+
+#start .lead {
+    color: #ff8c3e;
+    font-weight: 500;
+    font-size: 22px;
 }
 
 .icon {
-    color: #333;
-    font-size: 120px;
+    color: #ff8c3e;
+    font-size: 40px;
 }
 
 .caption {
     font-size: 18px;
-    font-weight: bold;
+    font-weight: 500;
+    margin-top: 10px;
     color: grey;
 }
 
 /* Cue List */
 #cue_list_div {
     width: 100%;
-    height: 70%;
+    height: 75%;
     overflow-y: scroll;
     border-top-width: 2px;
     display: none;
+    margin: 0;
+    padding-top: 0px;
 }
 #cue_list_div::-webkit-scrollbar {
-    width: 1em;
+    width: 0.7em;
 }
  
 #cue_list_div::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    -webkit-appearance: none;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
 }
  
 #cue_list_div::-webkit-scrollbar-thumb {
-    background-color: darkgrey;
-    border-radius: 1em;
-    outline: 1px solid slategrey;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #ff8c3e;
+    cursor: pointer;
 }
 #cue_list {
     width: 100%;
     margin-bottom: 0px;
+}
+#cue_list th {
+    color: #ff8c3e;
 }
 .inline_controls {
     cursor: default;
@@ -117,18 +176,24 @@ input[type=number]::-webkit-outer-spin-button {
 /* Task Bar */
 #taskbar {
     display: none;
-    bottom: 0px;
-    border-radius: 0px;
-    position: fixed;
-}
-.taskbar {
     width: 100%;
     background-color: #fff;
     margin-bottom: 0px;
 }
-.fullheight {
-    height: 100%;
+
+.section {
+    font-weight: 500;
+    font-size: 18px;
+    margin-left: 20px;
 }
+
+.credit {
+    position: absolute;
+    right: 20px;
+    font-weight: 500;
+    padding-top: 5px;
+}
+
 #controls {
     padding-top: 10px;
     padding-right: 35px;
@@ -155,57 +220,31 @@ input[type=number]::-webkit-outer-spin-button {
     display: none;
 }
 .label {
-    margin-top: 10px;
-    font-weight: bold;
-    color: black;
-    font-size: 13px;
-    padding-bottom: 0px;
+    font-weight: 600;
+    color: #ff8c3e;
+    font-size: 14px;
+    padding: 10px;
 }
-#seek-slider {
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
     margin-top: 5px;
     height: 1em;
     border-radius: 0.5em;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
 }
-#seek-slider-handle {
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
     width: 3em;
-    height: 1.6em;
-    top: 50%;
-    margin-top: -.8em;
-    text-align: center;
-    line-height: 1.6em;
-    background-color: rgb(0, 127, 255);
-    color: white;
-    border-radius: 3em;
-}
-#volume-slider {
-    margin-top: 5px;
-    height: 1em;
-    border-radius: 0.5em;
-}
-#volume-slider-handle {
-    width: 3em;
-    height: 1.6em;
-    top: 50%;
-    margin-top: -.8em;
-    text-align: center;
-    line-height: 1.6em;
-    background-color: rgb(0, 127, 255);
-    color: white;
-    border-radius: 3em;
-}
-#rate-slider {
-    margin-top: 5px;
-    height: 1em;
-    border-radius: 0.5em;
-}
-#rate-slider-handle {
-    width: 3em;
-    height: 1.6em;
-    top: 50%;
-    margin-top: -.8em;
-    text-align: center;
-    line-height: 1.6em;
-    background-color: rgb(0, 127, 255);
-    color: white;
-    border-radius: 3em;
+    height: 1.4em;
+    border-radius: 1.4em; 
+    background: #ff8c3e;
+    color: #fff;
+    cursor: pointer;
 }

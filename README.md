@@ -3,42 +3,30 @@
 # OpenQ - v1.1.0
 Cueing software that makes audio & video cueing easy. OpenQ supports Windows 7 or greater and provides a simmilar experiences across all platforms. Software updates are automatically added to ensure that you always recieve the best experience. 
 
-v1.1.0 is our second stable release with the introduction of video cueing - whilst we have tested it to ensure reliability, we cannot garuntee 100% reliability and therefore are not responsible for any crashes or errors. See below for full license details.
+v1.1.0 is our second stable release with the groundwork of video cueing - whilst we have tested it to ensure reliability, we cannot guarantee 100% reliability and therefore are not responsible for any crashes or errors. See below for full license details.
 
 [Download the latest release](https://www.github.com/benconstable9/openq/releases "OpenQ Releases")
 
-## Coming Soon in v1.1.0
+## Coming Soon in v2.1.0
 
 - Video Cueing
 - Quicker loading time for audio and video
-- Launch video output screen quickly
+- Launch video output screen
 
 ## New in v1.0.0
 
-- Delete Cues
-- Lock Cue List Modification
-- Empty Cue List
 - Cleaner Interface
-- Set Cue Start and End Points
-- Reorder Cues
-- Keyboard Hotkey (Enter)
-- Auto Updater
-- Rename Cues
-- Logo and Branding
+- Removal of Howler JS
+- Better performance through dynamic loading and unloading of audio
+- Quicker loading time for audio
+- Removal of rate and volume control due side effect on audio quality
 
 ## Known Issues
 
-- Scrubbing through tracks at high speed can cause issues with slider handle display text, does not effect operation.
-
-## Screenshots
-
-### Homepage
+- Bug with start and end times sometimes being overwritten
+- Sometimes buttons are incorrectly disabled
 
 ![Starting Page](https://github.com/BenConstable9/OpenQ/blob/master/images/starting.PNG "Starting Page")
-
-### Controls
-
-![Controls](https://github.com/BenConstable9/OpenQ/blob/master/images/control.PNG "Controls")
 
 ## Mentions
 
@@ -47,11 +35,8 @@ OpenQ would not be possible without the great work of several projects including
 - JQuery
 - Electron
 - Electron Build
-- Howlerjs
 - Bootstrap
 - Font Awesome
-
-Thank you! Thanks to Charlie for the logo design and branding.
 
 ## License
 
@@ -63,10 +48,6 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-## Contributing
-
-We welcome contributors! Before contributing, please send me a message to dicuss project goals.
 
 ---
 
