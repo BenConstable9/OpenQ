@@ -1,0 +1,4 @@
+appId: OpenQ
+publish:
+    provider: github
+token: 90e91903fa58d3373c539f06c5fab15c6930378f

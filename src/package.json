@@ -1,7 +1,7 @@
 {
     "name": "OpenQ",
     "productName": "OpenQ",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Simple Audio Cueing",
     "repository": {
         "type": "git",
@@ -10,7 +10,9 @@
     "main": "main.js",
     "scripts": {
         "start": "electron .",
-        "dist": "build"
+        "pack": "electron-builder --dir",
+        "build": "build --win",
+        "ship": "build --win -p always"
     },
     "bugs": {
         "url": "https://github.com/benconstable9/openq/issues"
@@ -24,20 +26,10 @@
         "electron-updater": "^2.18.2",
         "jquery": "3.2.1"
     },
-    "postinstall": "electron-builder install-app-deps",
-    "build": {
-        "publish": [
-            {
-                "provider": "github",
-                "owner": "benconstable9",
-                "repo": "openq"
-            }
-        ],
-        "files": [
-            "**/*",
-            "build/icon.ico"
-        ]
+    "win": {
+        "publish": "github"
     },
+    "postinstall": "electron-builder install-app-deps",
     "author": "Ben Constable",
     "license": "MIT",
     "copyright": "Copyright © 2019 Ben Constable"
